@@ -1,0 +1,49 @@
+{
+  "name": "chat-module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "StratoONE Chat Module — Stable V0.001 (T3 Stack: Next.js, tRPC, WebSocket, PostgreSQL, Cloudflare R2)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/s3-request-presigner": "^3.750.0",
+    "@prisma/client": "^5.22.0",
+    "@tanstack/react-query": "^5.66.0",
+    "@trpc/client": "^11.0.0-rc.800",
+    "@trpc/next": "^11.0.0-rc.800",
+    "@trpc/react-query": "^11.0.0-rc.800",
+    "@trpc/server": "^11.0.0-rc.800",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "lucide-react": "^0.475.0",
+    "next": "^14.2.24",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "superjson": "^2.2.2",
+    "tailwind-merge": "^3.0.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.19",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.14",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}
