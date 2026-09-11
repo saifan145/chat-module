@@ -63,8 +63,6 @@ export async function createPresignedUploadUrl(
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
-    ContentType: contentType,
-    ContentLength: fileSizeBytes,
   });
 
   const uploadUrl = await getSignedUrl(r2Client, command, {

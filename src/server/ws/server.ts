@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { Server as HTTPServer } from "http";
 import { db } from "../db";
 import { authenticateUser, type SessionUser } from "../services/auth";
+import { createPresignedViewUrl } from "../services/r2";
 import {
   type ChatEvent,
   type MessageSendPayload,
@@ -181,6 +182,19 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
           return created;
         });
 
+        // Augment attachments with presigned view URLs for real-time delivery
+        const attachmentsWithUrls = await Promise.all(
+          message.attachments.map(async (a) => ({
+            id: a.id,
+            messageId: a.messageId,
+            objectKey: a.objectKey,
+            fileName: a.fileName,
+            mimeType: a.mimeType,
+            size: Number(a.size),
+            url: await createPresignedViewUrl(a.objectKey),
+          }))
+        );
+
         const formattedPayload: MessageNewPayload = {
           roomId: dto.roomId,
           message: {
@@ -197,14 +211,7 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
               isOnline: true,
               lastSeenAt: new Date().toISOString(),
             },
-            attachments: message.attachments.map((a) => ({
-              id: a.id,
-              messageId: a.messageId,
-              objectKey: a.objectKey,
-              fileName: a.fileName,
-              mimeType: a.mimeType,
-              size: Number(a.size),
-            })),
+            attachments: attachmentsWithUrls,
           },
         };
 

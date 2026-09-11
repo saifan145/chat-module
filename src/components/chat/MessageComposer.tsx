@@ -86,8 +86,9 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
       setContent("");
       setAttachedFiles([]);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to send message:", err);
+      alert(err?.message || "Failed to upload file or send message.");
     } finally {
       setIsSending(false);
     }
