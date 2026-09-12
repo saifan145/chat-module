@@ -63,6 +63,18 @@ export const messageRouter = createTRPCRouter({
               avatarUrl: true,
             },
           },
+          replyTo: {
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
           attachments: true,
           receipts: {
             where: { userId },
@@ -100,6 +112,20 @@ export const messageRouter = createTRPCRouter({
             type: msg.type,
             mediaUrl: msg.mediaUrl,
             replyToId: msg.replyToId,
+            replyTo: msg.replyTo
+              ? {
+                  id: msg.replyTo.id,
+                  content: msg.replyTo.content,
+                  type: msg.replyTo.type,
+                  sender: msg.replyTo.sender
+                    ? {
+                        ...msg.replyTo.sender,
+                        isOnline: false,
+                        lastSeenAt: new Date().toISOString(),
+                      }
+                    : undefined,
+                }
+              : null,
             createdAt: msg.createdAt.toISOString(),
             sender: {
               ...msg.sender,
@@ -187,53 +213,79 @@ export const messageRouter = createTRPCRouter({
                 }
               : undefined,
           },
-          include: {
-            sender: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatarUrl: true,
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true,
+                  avatarUrl: true,
+                },
               },
+              replyTo: {
+                include: {
+                  sender: {
+                    select: {
+                      id: true,
+                      username: true,
+                      displayName: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+              attachments: true,
             },
-            attachments: true,
-          },
-        });
-
-        // Initialize receipts for all other participants
-        if (otherMembers.length > 0) {
-          await tx.messageReceipt.createMany({
-            data: otherMembers.map((m) => ({
-              messageId: created.id,
-              userId: m.userId,
-              status: "SENT",
-            })),
           });
-        }
 
-        // Update room updatedAt
-        await tx.chatRoom.update({
-          where: { id: input.roomId },
-          data: { updatedAt: new Date() },
+          // Initialize receipts for all other participants
+          if (otherMembers.length > 0) {
+            await tx.messageReceipt.createMany({
+              data: otherMembers.map((m) => ({
+                messageId: created.id,
+                userId: m.userId,
+                status: "SENT",
+              })),
+            });
+          }
+
+          // Update room updatedAt
+          await tx.chatRoom.update({
+            where: { id: input.roomId },
+            data: { updatedAt: new Date() },
+          });
+
+          return created;
         });
 
-        return created;
-      });
-
-      return {
-        id: message.id,
-        roomId: message.roomId,
-        senderId: message.senderId,
-        content: message.content,
-        type: message.type,
-        mediaUrl: message.mediaUrl,
-        replyToId: message.replyToId,
-        createdAt: message.createdAt.toISOString(),
-        sender: {
-          ...message.sender,
-          isOnline: false,
-          lastSeenAt: new Date().toISOString(),
-        },
+        return {
+          id: message.id,
+          roomId: message.roomId,
+          senderId: message.senderId,
+          content: message.content,
+          type: message.type,
+          mediaUrl: message.mediaUrl,
+          replyToId: message.replyToId,
+          replyTo: message.replyTo
+            ? {
+                id: message.replyTo.id,
+                content: message.replyTo.content,
+                type: message.replyTo.type,
+                sender: message.replyTo.sender
+                  ? {
+                      ...message.replyTo.sender,
+                      isOnline: false,
+                      lastSeenAt: new Date().toISOString(),
+                    }
+                  : undefined,
+              }
+            : null,
+          createdAt: message.createdAt.toISOString(),
+          sender: {
+            ...message.sender,
+            isOnline: false,
+            lastSeenAt: new Date().toISOString(),
+          },
         attachments: message.attachments.map((a) => ({
           id: a.id,
           messageId: a.messageId,
@@ -272,5 +324,105 @@ export const messageRouter = createTRPCRouter({
       ]);
 
       return { success: true };
+    }),
+
+  // Edit message content
+  edit: protectedProcedure
+    .input(
+      z.object({
+        messageId: z.string().uuid(),
+        content: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const message = await ctx.db.chatMessage.findUnique({
+        where: { id: input.messageId },
+      });
+
+      if (!message || message.senderId !== userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only edit your own messages",
+        });
+      }
+
+      const updated = await ctx.db.chatMessage.update({
+        where: { id: input.messageId },
+        data: {
+          content: input.content,
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        id: updated.id,
+        roomId: updated.roomId,
+        content: updated.content,
+        updatedAt: updated.updatedAt.toISOString(),
+      };
+    }),
+
+  // Soft-delete message
+  delete: protectedProcedure
+    .input(z.object({ messageId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const message = await ctx.db.chatMessage.findUnique({
+        where: { id: input.messageId },
+      });
+
+      if (!message || message.senderId !== userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only delete your own messages",
+        });
+      }
+
+      await ctx.db.chatMessage.update({
+        where: { id: input.messageId },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      return { success: true, messageId: input.messageId, roomId: message.roomId };
+    }),
+
+  // List thread replies for a specific message
+  listReplies: protectedProcedure
+    .input(z.object({ parentMessageId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const replies = await ctx.db.chatMessage.findMany({
+        where: {
+          replyToId: input.parentMessageId,
+          deletedAt: null,
+        },
+        orderBy: { createdAt: "asc" },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      return replies.map((r) => ({
+        id: r.id,
+        roomId: r.roomId,
+        senderId: r.senderId,
+        content: r.content,
+        type: r.type,
+        createdAt: r.createdAt.toISOString(),
+        sender: {
+          ...r.sender,
+          isOnline: false,
+          lastSeenAt: new Date().toISOString(),
+        },
+      }));
     }),
 });

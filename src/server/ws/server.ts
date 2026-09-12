@@ -158,6 +158,18 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
                   avatarUrl: true,
                 },
               },
+              replyTo: {
+                include: {
+                  sender: {
+                    select: {
+                      id: true,
+                      username: true,
+                      displayName: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
               attachments: true,
             },
           });
@@ -205,6 +217,20 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
             type: message.type,
             mediaUrl: message.mediaUrl,
             replyToId: message.replyToId,
+            replyTo: message.replyTo
+              ? {
+                  id: message.replyTo.id,
+                  content: message.replyTo.content,
+                  type: message.replyTo.type,
+                  sender: message.replyTo.sender
+                    ? {
+                        ...message.replyTo.sender,
+                        isOnline: false,
+                        lastSeenAt: new Date().toISOString(),
+                      }
+                    : undefined,
+                }
+              : null,
             createdAt: message.createdAt.toISOString(),
             sender: {
               ...message.sender,
@@ -215,10 +241,16 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
           },
         };
 
+        // Ensure sender socket is in roomChannel
+        await socket.join(roomChannel(dto.roomId));
+
         // Broadcast to conversation room (including sender tabs)
         io.to(roomChannel(dto.roomId)).emit("message:new", formattedPayload);
 
-        if (callback) callback({ status: "ok", messageId: message.id });
+        // Also emit directly to the sender socket to guarantee immediate receipt
+        socket.emit("message:new", formattedPayload);
+
+        if (callback) callback({ status: "ok", messageId: message.id, message: formattedPayload.message });
       } catch (err) {
         if (callback) callback({ error: (err as Error).message });
       }
@@ -270,6 +302,27 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
         userId: user.id,
         readAt: new Date().toISOString(),
       });
+    });
+
+    // 6. Message Reaction Sync (Real-time Emojis)
+    socket.on(
+      "message:react",
+      (data: { roomId: string; messageId: string; emoji: string; userId: string }) => {
+        io.to(roomChannel(data.roomId)).emit("message:react", data);
+      }
+    );
+
+    // 7. Message Edit Sync
+    socket.on(
+      "message:edit",
+      (data: { roomId: string; messageId: string; content: string; updatedAt: string }) => {
+        io.to(roomChannel(data.roomId)).emit("message:edit", data);
+      }
+    );
+
+    // 8. Message Delete Sync
+    socket.on("message:delete", (data: { roomId: string; messageId: string }) => {
+      io.to(roomChannel(data.roomId)).emit("message:delete", data);
     });
 
     // Disconnection

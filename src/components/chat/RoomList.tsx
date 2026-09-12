@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { type RoomData } from "@/types/chat";
 import { RoomItem } from "./RoomItem";
-import { Plus, Search, MessageSquarePlus } from "lucide-react";
+import {
+  Send,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Hash,
+} from "lucide-react";
 
 interface RoomListProps {
   rooms: RoomData[];
@@ -18,67 +24,207 @@ export const RoomList: React.FC<RoomListProps> = ({
   onSelectRoom,
   onCreateRoom,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isDmsOpen, setIsDmsOpen] = useState(true);
+  const [isTeamProjectsOpen, setIsTeamProjectsOpen] = useState(true);
+  const [isInternalsOpen, setIsInternalsOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
-  const filtered = rooms.filter((r) => {
-    const otherMember = r.type === "DIRECT" ? r.members.find((m) => m.userId !== currentUserId) : null;
-    const name = r.type === "DIRECT"
-      ? (otherMember?.user.displayName || otherMember?.user.username || "")
-      : (r.name || "");
-    return name.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  // Separate direct messages vs channels
+  const directRooms = rooms.filter((r) => r.type === "DIRECT");
+  const groupRooms = rooms.filter((r) => r.type === "GROUP");
+
+  const teamProjectsRooms = groupRooms.filter((r) =>
+    (r.name || "").toLowerCase().includes("team") || (r.name || "").toLowerCase().includes("project")
+  );
+  const internalsRooms = groupRooms.filter((r) =>
+    (r.name || "").toLowerCase().includes("internal")
+  );
+  const feedbackRooms = groupRooms.filter((r) =>
+    (r.name || "").toLowerCase().includes("feedback")
+  );
+  const otherGroupRooms = groupRooms.filter(
+    (r) =>
+      !teamProjectsRooms.includes(r) &&
+      !internalsRooms.includes(r) &&
+      !feedbackRooms.includes(r)
+  );
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse" />
-            StratoONE Chat
-          </h2>
-          <p className="text-xs text-slate-400">Stable V0.001</p>
-        </div>
-
+    <div className="flex flex-col h-full select-none text-slate-800">
+      {/* Channels Header */}
+      <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">
+          Channels
+        </h2>
         <button
           onClick={onCreateRoom}
-          className="p-2 rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-500 border border-brand-500/30 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-gray-200/80 text-gray-500 hover:text-slate-900 transition-colors"
           title="New conversation"
         >
-          <MessageSquarePlus className="w-4 h-4" />
+          <Plus className="w-5 h-5 stroke-[2]" />
         </button>
       </div>
 
-      {/* Search Input */}
-      <div className="p-3 border-b border-slate-800/50">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search conversations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 transition-all"
-          />
-        </div>
-      </div>
+      {/* Scrollable Channels & DMs List */}
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 scrollbar-thin">
+        {/* Direct Messages Section */}
+        <div>
+          <button
+            onClick={() => setIsDmsOpen(!isDmsOpen)}
+            className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
+          >
+            <div className="flex items-center gap-2">
+              <Send className="w-3.5 h-3.5 text-gray-400 rotate-[-25deg]" />
+              <span>Direct Messages</span>
+            </div>
+            {isDmsOpen ? (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
 
-      {/* Room list items */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-slate-800">
-        {filtered.length === 0 ? (
-          <div className="text-center py-10 px-4 text-slate-400 text-xs">
-            No conversations found. Start a new one!
+          {isDmsOpen && (
+            <div className="mt-1 space-y-0.5">
+              {directRooms.map((room) => (
+                <RoomItem
+                  key={room.id}
+                  room={room}
+                  isSelected={room.id === selectedRoomId}
+                  currentUserId={currentUserId}
+                  onClick={() => onSelectRoom(room.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Team Projects Section */}
+        <div>
+          <button
+            onClick={() => setIsTeamProjectsOpen(!isTeamProjectsOpen)}
+            className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
+          >
+            <div className="flex items-center gap-2">
+              <Hash className="w-3.5 h-3.5 text-gray-400" />
+              <span>Team Projects</span>
+            </div>
+            {isTeamProjectsOpen ? (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
+
+          {isTeamProjectsOpen && (
+            <div className="mt-1 space-y-0.5">
+              {teamProjectsRooms.length > 0 ? (
+                teamProjectsRooms.map((room) => (
+                  <RoomItem
+                    key={room.id}
+                    room={room}
+                    isSelected={room.id === selectedRoomId}
+                    currentUserId={currentUserId}
+                    onClick={() => onSelectRoom(room.id)}
+                  />
+                ))
+              ) : (
+                <div className="px-3 py-1.5 text-xs text-slate-400"># general</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Internals Section */}
+        <div>
+          <button
+            onClick={() => setIsInternalsOpen(!isInternalsOpen)}
+            className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
+          >
+            <div className="flex items-center gap-2">
+              <Hash className="w-3.5 h-3.5 text-gray-400" />
+              <span>Internals</span>
+            </div>
+            {isInternalsOpen ? (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
+
+          {isInternalsOpen && (
+            <div className="mt-1 space-y-0.5">
+              {internalsRooms.length > 0 ? (
+                internalsRooms.map((room) => (
+                  <RoomItem
+                    key={room.id}
+                    room={room}
+                    isSelected={room.id === selectedRoomId}
+                    currentUserId={currentUserId}
+                    onClick={() => onSelectRoom(room.id)}
+                  />
+                ))
+              ) : (
+                <div className="px-3 py-1.5 text-xs text-slate-400"># announcements</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Feedback Sessions Section */}
+        <div>
+          <button
+            onClick={() => setIsFeedbackOpen(!isFeedbackOpen)}
+            className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
+          >
+            <div className="flex items-center gap-2">
+              <Hash className="w-3.5 h-3.5 text-gray-400" />
+              <span>Feedback Sessions</span>
+            </div>
+            {isFeedbackOpen ? (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
+
+          {isFeedbackOpen && (
+            <div className="mt-1 space-y-0.5">
+              {feedbackRooms.length > 0 ? (
+                feedbackRooms.map((room) => (
+                  <RoomItem
+                    key={room.id}
+                    room={room}
+                    isSelected={room.id === selectedRoomId}
+                    currentUserId={currentUserId}
+                    onClick={() => onSelectRoom(room.id)}
+                  />
+                ))
+              ) : (
+                <div className="px-3 py-1.5 text-xs text-slate-400"># sprint-retro</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Other Channels */}
+        {otherGroupRooms.length > 0 && (
+          <div className="pt-2">
+            <span className="px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Other Channels
+            </span>
+            <div className="mt-1 space-y-0.5">
+              {otherGroupRooms.map((room) => (
+                <RoomItem
+                  key={room.id}
+                  room={room}
+                  isSelected={room.id === selectedRoomId}
+                  currentUserId={currentUserId}
+                  onClick={() => onSelectRoom(room.id)}
+                />
+              ))}
+            </div>
           </div>
-        ) : (
-          filtered.map((room) => (
-            <RoomItem
-              key={room.id}
-              room={room}
-              isSelected={room.id === selectedRoomId}
-              currentUserId={currentUserId}
-              onClick={() => onSelectRoom(room.id)}
-            />
-          ))
         )}
       </div>
     </div>

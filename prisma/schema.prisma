@@ -7,6 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id              String           @id
+  username        String           @unique
+  displayName     String
+  avatarUrl       String?
+  about           String?          @default("Hey there! I am using StratoONE Chat.")
+  isOnline        Boolean          @default(false)
+  lastSeenAt      DateTime         @default(now())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  messageReceipts MessageReceipt[]
+  sentMessages    ChatMessage[]
+  memberships     ChatRoomMember[]
+
+  @@map("users")
+}
+
+model ChatRoom {
+  id        String           @id @default(uuid())
+  type      RoomType         @default(DIRECT)
+  name      String?
+  avatarUrl String?
+  createdBy String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  ChatMessage[]
+  members   ChatRoomMember[]
+
+  @@map("chat_rooms")
+}
+
+model ChatRoomMember {
+  id         String    @id @default(uuid())
+  roomId     String    @map("room_id")
+  userId     String    @map("user_id")
+  isAdmin    Boolean   @default(false)
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+  lastReadAt DateTime? @map("last_read_at")
+  room       ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@map("chat_room_members")
+}
+
+model ChatMessage {
+  id          String           @id @default(uuid())
+  roomId      String           @map("room_id")
+  senderId    String           @map("sender_id")
+  content     String?
+  type        MessageType      @default(TEXT)
+  mediaUrl    String?          @map("media_url")
+  replyToId   String?          @map("reply_to_id")
+  deletedAt   DateTime?        @map("deleted_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  attachments ChatAttachment[]
+  receipts    MessageReceipt[]
+  replyTo     ChatMessage?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies     ChatMessage[]    @relation("MessageReplies")
+  room        ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+model ChatAttachment {
+  id        String      @id @default(uuid())
+  messageId String      @map("message_id")
+  objectKey String      @map("object_key")
+  fileName  String      @map("file_name")
+  mimeType  String      @map("mime_type")
+  size      BigInt      @default(0)
+  createdAt DateTime    @default(now()) @map("created_at")
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("chat_attachments")
+}
+
+model MessageReceipt {
+  id        String         @id @default(uuid())
+  messageId String         @map("message_id")
+  userId    String         @map("user_id")
+  status    DeliveryStatus @default(SENT)
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  message   ChatMessage    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId, status])
+  @@map("chat_message_receipts")
+}
+
 enum RoomType {
   DIRECT
   GROUP
@@ -22,115 +120,4 @@ enum DeliveryStatus {
   SENT
   DELIVERED
   READ
-}
-
-// User projection model for clean authentication boundary (Section 13)
-model User {
-  id          String   @id // matches sub from Auth JWT / session
-  username    String   @unique
-  displayName String
-  avatarUrl   String?
-  about       String?  @default("Hey there! I am using StratoONE Chat.")
-  isOnline    Boolean  @default(false)
-  lastSeenAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  memberships     ChatRoomMember[]
-  sentMessages    ChatMessage[]
-  messageReceipts MessageReceipt[]
-
-  @@map("users")
-}
-
-// Chat Rooms / Conversations (Section 7)
-model ChatRoom {
-  id        String   @id @default(uuid())
-  type      RoomType @default(DIRECT)
-  name      String?  // Optional for DIRECT, required for GROUP
-  avatarUrl String?
-  createdBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  members  ChatRoomMember[]
-  messages ChatMessage[]
-
-  @@map("chat_rooms")
-}
-
-// Room Memberships (Section 7 & 8)
-model ChatRoomMember {
-  id         String    @id @default(uuid())
-  roomId     String    @map("room_id")
-  userId     String    @map("user_id")
-  isAdmin    Boolean   @default(false)
-  joinedAt   DateTime  @default(now()) @map("joined_at")
-  lastReadAt DateTime? @map("last_read_at")
-
-  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([roomId, userId])
-  @@index([roomId])
-  @@index([userId])
-  @@map("chat_room_members")
-}
-
-// Messages (Section 7 & 8)
-model ChatMessage {
-  id        String      @id @default(uuid())
-  roomId    String      @map("room_id")
-  senderId  String      @map("sender_id")
-  content   String?
-  type      MessageType @default(TEXT)
-  mediaUrl  String?     @map("media_url")
-  replyToId String?     @map("reply_to_id")
-  deletedAt DateTime?   @map("deleted_at")
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
-
-  room        ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender      User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo     ChatMessage?     @relation("MessageReplies", fields: [replyToId], references: [id])
-  replies     ChatMessage[]    @relation("MessageReplies")
-  attachments ChatAttachment[]
-  receipts    MessageReceipt[]
-
-  // Primary access pattern index: ORDER BY created_at DESC LIMIT 30 (Section 8)
-  @@index([roomId, createdAt(sort: Desc)])
-  @@index([senderId])
-  @@map("chat_messages")
-}
-
-// Attachments / R2 Media Storage Metadata (Section 7 & 8)
-model ChatAttachment {
-  id        String   @id @default(uuid())
-  messageId String   @map("message_id")
-  objectKey String   @map("object_key") // deterministic: chat/rooms/{roomId}/{uuid}
-  fileName  String   @map("file_name")
-  mimeType  String   @map("mime_type")
-  size      BigInt   @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  @@index([messageId])
-  @@map("chat_attachments")
-}
-
-// Message Delivery & Read Receipts (Extracted & Enhanced from pulse-chat)
-model MessageReceipt {
-  id        String         @id @default(uuid())
-  messageId String         @map("message_id")
-  userId    String         @map("user_id")
-  status    DeliveryStatus @default(SENT)
-  updatedAt DateTime       @updatedAt @map("updated_at")
-
-  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([messageId, userId])
-  @@index([userId, status])
-  @@map("chat_message_receipts")
 }

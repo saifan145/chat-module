@@ -7,6 +7,11 @@ interface MessageListProps {
   currentUserId: string;
   hasMore?: boolean;
   onLoadMore?: () => void;
+  onQuoteReply?: (message: MessageData) => void;
+  onOpenThread?: (message: MessageData) => void;
+  onReact?: (messageId: string, emoji: string) => void;
+  onEdit?: (messageId: string, newContent: string) => void;
+  onDelete?: (messageId: string) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -14,6 +19,11 @@ export const MessageList: React.FC<MessageListProps> = ({
   currentUserId,
   hasMore,
   onLoadMore,
+  onQuoteReply,
+  onOpenThread,
+  onReact,
+  onEdit,
+  onDelete,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -22,12 +32,12 @@ export const MessageList: React.FC<MessageListProps> = ({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-slate-800">
+    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1 scrollbar-thin">
       {hasMore && (
-        <div className="text-center mb-4">
+        <div className="text-center my-3">
           <button
             onClick={onLoadMore}
-            className="text-xs text-brand-500 hover:text-brand-400 font-medium px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60"
+            className="text-xs text-slate-500 hover:text-slate-800 font-medium px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200/70 transition-colors"
           >
             Load older messages
           </button>
@@ -35,8 +45,8 @@ export const MessageList: React.FC<MessageListProps> = ({
       )}
 
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-          No messages in this conversation yet. Send the first hello!
+        <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+          No messages in this conversation yet. Send the first message!
         </div>
       ) : (
         messages.map((msg) => (
@@ -44,6 +54,12 @@ export const MessageList: React.FC<MessageListProps> = ({
             key={msg.id}
             message={msg}
             isSelf={msg.senderId === currentUserId}
+            onQuoteReply={onQuoteReply}
+            onOpenThread={onOpenThread}
+            onReact={onReact}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            currentUserId={currentUserId}
           />
         ))
       )}

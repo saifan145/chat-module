@@ -23,6 +23,11 @@ export interface AttachmentData {
   url?: string | null;
 }
 
+export interface MessageReaction {
+  emoji: string;
+  users: string[]; // userIds
+}
+
 export interface MessageData {
   id: string;
   roomId: string;
@@ -31,7 +36,18 @@ export interface MessageData {
   type: MessageType;
   mediaUrl?: string | null;
   replyToId?: string | null;
+  replyTo?: {
+    id: string;
+    content: string | null;
+    type: MessageType;
+    sender?: UserSummary;
+  } | null;
   createdAt: string;
+  updatedAt?: string;
+  isEdited?: boolean;
+  deletedAt?: string | null;
+  reactions?: MessageReaction[];
+  threadCount?: number;
   sender?: UserSummary;
   attachments?: AttachmentData[];
   receipts?: {
@@ -63,7 +79,7 @@ export interface RoomData {
   unreadCount?: number;
 }
 
-// WebSocket Event Contract (Strictly following Section 6 of TL specs)
+// WebSocket Event Contract
 export type ChatEvent =
   | "room:join"
   | "room:leave"
@@ -73,7 +89,10 @@ export type ChatEvent =
   | "typing:start"
   | "typing:stop"
   | "presence:update"
-  | "message:delivered";
+  | "message:delivered"
+  | "message:react"
+  | "message:edit"
+  | "message:delete";
 
 export interface MessageSendPayload {
   roomId: string;

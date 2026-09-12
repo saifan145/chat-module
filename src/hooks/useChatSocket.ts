@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, type Socket } from "socket.io-client";
-import { type ConnectionState, type MessageNewPayload } from "@/types/chat";
+import { type ConnectionState, type MessageData, type MessageNewPayload } from "@/types/chat";
 
 export function useChatSocket(userId: string) {
   const [connectionState, setConnectionState] = useState<ConnectionState>("DISCONNECTED");
@@ -64,9 +64,10 @@ export function useChatSocket(userId: string) {
       content?: string;
       type?: "TEXT" | "IMAGE" | "FILE";
       mediaUrl?: string;
+      replyToId?: string;
       attachments?: any[];
     }) => {
-      return new Promise<{ status?: string; messageId?: string; error?: string }>((resolve) => {
+      return new Promise<{ status?: string; messageId?: string; message?: MessageData; error?: string }>((resolve) => {
         if (!socketRef.current) {
           resolve({ error: "Socket not connected" });
           return;
@@ -91,6 +92,23 @@ export function useChatSocket(userId: string) {
     socketRef.current?.emit("message:read", { roomId });
   }, []);
 
+  const reactMessage = useCallback((roomId: string, messageId: string, emoji: string) => {
+    socketRef.current?.emit("message:react", { roomId, messageId, emoji, userId });
+  }, [userId]);
+
+  const editMessage = useCallback((roomId: string, messageId: string, content: string) => {
+    socketRef.current?.emit("message:edit", {
+      roomId,
+      messageId,
+      content,
+      updatedAt: new Date().toISOString(),
+    });
+  }, []);
+
+  const deleteMessage = useCallback((roomId: string, messageId: string) => {
+    socketRef.current?.emit("message:delete", { roomId, messageId });
+  }, []);
+
   return {
     socket: socketRef.current,
     connectionState,
@@ -100,5 +118,8 @@ export function useChatSocket(userId: string) {
     startTyping,
     stopTyping,
     markRead,
+    reactMessage,
+    editMessage,
+    deleteMessage,
   };
 }

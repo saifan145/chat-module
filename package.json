@@ -4,12 +4,13 @@
   "private": true,
   "description": "StratoONE Chat Module — Stable V0.001 (T3 Stack: Next.js, tRPC, WebSocket, PostgreSQL, Cloudflare R2)",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",

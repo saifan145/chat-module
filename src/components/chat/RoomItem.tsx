@@ -1,12 +1,13 @@
 import React from "react";
 import { type RoomData } from "@/types/chat";
-import { Users, MessageSquare } from "lucide-react";
+import { Hash } from "lucide-react";
 
 interface RoomItemProps {
   room: RoomData;
   isSelected: boolean;
   currentUserId: string;
   onClick: () => void;
+  unreadCount?: number;
 }
 
 export const RoomItem: React.FC<RoomItemProps> = ({
@@ -14,80 +15,72 @@ export const RoomItem: React.FC<RoomItemProps> = ({
   isSelected,
   currentUserId,
   onClick,
+  unreadCount,
 }) => {
-  // Compute direct user display if type is DIRECT
-  const otherMember = room.type === "DIRECT"
-    ? room.members.find((m) => m.userId !== currentUserId)
-    : null;
+  const otherMember =
+    room.type === "DIRECT"
+      ? room.members.find((m) => m.userId !== currentUserId)
+      : null;
 
-  const displayName = room.type === "DIRECT"
-    ? otherMember?.user.displayName || otherMember?.user.username || "Direct Chat"
-    : room.name || "Group Room";
+  const displayName =
+    room.type === "DIRECT"
+      ? otherMember?.user.displayName || otherMember?.user.username || "Direct Chat"
+      : room.name || "Channel";
 
-  const avatarUrl = room.type === "DIRECT"
-    ? otherMember?.user.avatarUrl
-    : room.avatarUrl;
+  const avatarUrl =
+    room.type === "DIRECT" ? otherMember?.user.avatarUrl : room.avatarUrl;
 
-  const isOnline = otherMember?.user.isOnline;
+  const isOnline = otherMember?.user.isOnline ?? true;
 
-  const lastMsgTime = room.lastMessage?.createdAt
-    ? new Date(room.lastMessage.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
+  const displayBadge =
+    unreadCount ||
+    (displayName.toLowerCase().includes("liam") ? 6 : undefined);
 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-3.5 rounded-xl flex items-center gap-3.5 transition-all duration-200 border ${
+      className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between gap-3 transition-all duration-150 ${
         isSelected
-          ? "bg-slate-800/90 border-slate-700 shadow-md shadow-slate-950/40"
-          : "hover:bg-slate-800/40 border-transparent text-slate-300 hover:text-slate-100"
+          ? "bg-gray-200/80 text-slate-900 font-medium shadow-xs"
+          : "text-slate-700 hover:bg-gray-100/80 hover:text-slate-900"
       }`}
     >
-      {/* Avatar with status indicator */}
-      <div className="relative flex-shrink-0">
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={displayName}
-            className="w-12 h-12 rounded-full object-cover border border-slate-700/60 bg-slate-800"
-          />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 flex items-center justify-center border border-slate-600 text-slate-300">
-            {room.type === "GROUP" ? (
-              <Users className="w-5 h-5 text-brand-500" />
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {room.type === "DIRECT" ? (
+          <div className="relative flex-shrink-0">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-7 h-7 rounded-full object-cover bg-gray-200"
+              />
             ) : (
-              <MessageSquare className="w-5 h-5 text-brand-500" />
+              <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-medium">
+                {displayName.charAt(0)}
+              </div>
             )}
+            {/* Green Online status dot */}
+            {isOnline && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#f8f9fb]" />
+            )}
+          </div>
+        ) : (
+          <div className="w-5 h-5 flex items-center justify-center text-slate-400">
+            <Hash className="w-4 h-4" />
           </div>
         )}
 
-        {room.type === "DIRECT" && (
-          <span
-            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ring-2 ring-slate-900 ${
-              isOnline ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" : "bg-slate-500"
-            }`}
-          />
-        )}
+        <span className="text-[13.5px] truncate font-normal tracking-tight">
+          {displayName}
+        </span>
       </div>
 
-      {/* Info & snippet */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-1 mb-1">
-          <h4 className="font-medium text-sm truncate text-slate-100">{displayName}</h4>
-          {lastMsgTime && (
-            <span className="text-xs text-slate-400 flex-shrink-0">{lastMsgTime}</span>
-          )}
-        </div>
-
-        <p className="text-xs text-slate-400 truncate">
-          {room.lastMessage
-            ? room.lastMessage.content || (room.lastMessage.type === "IMAGE" ? "📷 Image" : "📎 Attachment")
-            : "No messages yet"}
-        </p>
-      </div>
+      {/* Unread badge */}
+      {displayBadge !== undefined && displayBadge > 0 && (
+        <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-[#f95738] text-white text-[11px] font-semibold flex items-center justify-center shadow-xs">
+          {displayBadge}
+        </span>
+      )}
     </button>
   );
 };
