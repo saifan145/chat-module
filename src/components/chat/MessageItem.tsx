@@ -12,6 +12,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { FormattedText } from "./FormattedText";
+import { AudioPlayer } from "./AudioPlayer";
 
 interface MessageItemProps {
   message: MessageData;
@@ -183,6 +184,20 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           <div className="space-y-1.5 my-1.5">
             {message.attachments.map((att) => {
               const isImage = att.mimeType.startsWith("image/");
+              const isAudio =
+                att.mimeType.startsWith("audio/") ||
+                att.fileName.endsWith(".webm") ||
+                att.fileName.endsWith(".mp3") ||
+                att.fileName.endsWith(".wav");
+
+              if (isAudio) {
+                return (
+                  <div key={att.id} className="my-1">
+                    <AudioPlayer audioUrl={att.url || ""} />
+                  </div>
+                );
+              }
+
               return isImage ? (
                 <a
                   key={att.id}

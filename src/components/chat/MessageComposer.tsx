@@ -13,10 +13,12 @@ import {
   Quote,
   AlertCircle,
   FileText,
+  Mic,
 } from "lucide-react";
 import { useUpload } from "@/hooks/useUpload";
 import { type MessageData } from "@/types/chat";
 import { trpc } from "@/utils/trpc";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB limit
 
@@ -52,6 +54,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [showMentionMenu, setShowMentionMenu] = useState(false);
@@ -283,6 +286,30 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
     }
   };
 
+  const handleSendVoiceNote = async (audioUrl: string, duration: number) => {
+    setIsVoiceRecording(false);
+    setIsSending(true);
+    try {
+      await onSendMessage({
+        content: `🎙️ Voice Note (${duration}s)`,
+        type: "FILE",
+        attachments: [
+          {
+            objectKey: `voice_${Date.now()}.webm`,
+            fileName: `Voice Note (${duration}s).webm`,
+            mimeType: "audio/webm",
+            size: duration * 16000,
+            url: audioUrl,
+          },
+        ],
+      });
+    } catch (err: any) {
+      console.error("Failed to send voice note:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const canSend = (content.trim().length > 0 || attachedFiles.length > 0) && !isSending && !isUploading;
 
   const quickEmojis = ["🤔", "💡", "🚀", "✅", "👍", "❤️", "🙌", "😊", "🔥", "🎉"];
@@ -346,6 +373,16 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           </button>
         </div>
       )}
+
+      {/* Voice Recorder Overlay */}
+      {isVoiceRecording ? (
+        <div className="mb-2">
+          <VoiceRecorder
+            onSendVoiceNote={handleSendVoiceNote}
+            onCancel={() => setIsVoiceRecording(false)}
+          />
+        </div>
+      ) : null}
 
       <div
         onDragOver={handleDragOver}
@@ -518,6 +555,17 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
               title="Attach files or media (Max 20MB each)"
             >
               <Paperclip className="w-4 h-4 stroke-[1.8]" />
+            </button>
+
+            {/* Voice Message */}
+            <button
+              type="button"
+              onClick={() => setIsVoiceRecording(true)}
+              disabled={isUploading || isSending}
+              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors text-slate-500"
+              title="Record Voice Note"
+            >
+              <Mic className="w-4 h-4 stroke-[1.8]" />
             </button>
 
             <div className="h-3.5 w-px bg-gray-300/70 mx-0.5" />
