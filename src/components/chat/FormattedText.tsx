@@ -101,6 +101,26 @@ function renderBoldItalic(text: string, keyPrefix: number | string): React.React
         </blockquote>
       );
     }
+
+    // @mentions (e.g. @saifan, @sofia.petrovna, @noah_brown)
+    const mentionSplits = part.split(/(@[a-zA-Z0-9_.-]+)/g);
+    if (mentionSplits.length > 1) {
+      return mentionSplits.map((chunk, mIdx) => {
+        if (chunk.startsWith("@")) {
+          return (
+            <span
+              key={`${keyPrefix}-m-${idx}-${mIdx}`}
+              className="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 text-indigo-700 font-semibold text-[12px] border border-indigo-200/80 shadow-xs hover:bg-indigo-100 transition-colors cursor-pointer select-text"
+              title={`Mention: ${chunk}`}
+            >
+              {chunk}
+            </span>
+          );
+        }
+        return chunk;
+      });
+    }
+
     return part;
   });
 }

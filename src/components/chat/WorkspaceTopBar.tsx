@@ -3,6 +3,7 @@ import {
   Search,
   Clock,
   HelpCircle,
+  Bell,
   PanelLeftClose,
   PanelLeft,
 } from "lucide-react";
@@ -12,12 +13,16 @@ interface WorkspaceTopBarProps {
   onOpenSearch: () => void;
   currentUser: UserSummary;
   onOpenProfile: () => void;
+  onOpenActivity?: () => void;
+  unreadNotificationsCount?: number;
 }
 
 export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
   onOpenSearch,
   currentUser,
   onOpenProfile,
+  onOpenActivity,
+  unreadNotificationsCount = 0,
 }) => {
   return (
     <header className="h-11 w-full bg-[#18191d] text-gray-300 flex items-center justify-between px-3 select-none flex-shrink-0 z-30 border-b border-gray-800">
@@ -49,7 +54,22 @@ export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
+        {onOpenActivity && (
+          <button
+            onClick={onOpenActivity}
+            className="relative p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            title="Activity Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-rose-500 text-white font-bold text-[9px] flex items-center justify-center border border-[#18191d]">
+                {unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}
+              </span>
+            )}
+          </button>
+        )}
+
         <button
           className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
           title="Help & Feedback"

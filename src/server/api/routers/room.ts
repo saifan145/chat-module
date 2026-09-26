@@ -154,9 +154,9 @@ export const roomRouter = createTRPCRouter({
     .input(
       z.object({
         type: z.enum(["DIRECT", "GROUP"]).default("DIRECT"),
-        name: z.string().optional(),
-        avatarUrl: z.string().url().optional(),
-        participantIds: z.array(z.string()).min(1),
+        name: z.string().trim().min(1).max(100).optional(),
+        avatarUrl: z.string().url().max(500).optional(),
+        participantIds: z.array(z.string().trim().min(1).max(100)).min(1).max(50),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -347,6 +347,22 @@ export const roomRouter = createTRPCRouter({
   members: protectedProcedure
     .input(z.object({ roomId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const isMember = await ctx.db.chatRoomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId: input.roomId,
+            userId: ctx.user.id,
+          },
+        },
+      });
+
+      if (!isMember) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not a member of this chat room",
+        });
+      }
+
       return ctx.db.chatRoomMember.findMany({
         where: { roomId: input.roomId },
         include: {
@@ -362,5 +378,270 @@ export const roomRouter = createTRPCRouter({
           },
         },
       });
+    }),
+
+  // Rename a Group Channel or Room (Section 14 & Activity Feed)
+  updateName: protectedProcedure
+    .input(
+      z.object({
+        roomId: z.string().uuid(),
+        name: z.string().min(1).max(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const membership = await ctx.db.chatRoomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId: input.roomId,
+            userId,
+          },
+        },
+      });
+
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not a member of this chat room",
+        });
+      }
+
+      const updatedRoom = await ctx.db.chatRoom.update({
+        where: { id: input.roomId },
+        data: {
+          name: input.name.trim(),
+          updatedAt: new Date(),
+        },
+      });
+
+      // System notification message in room
+      const actor = await ctx.db.user.findUnique({ where: { id: userId } });
+      const actorName = actor?.displayName || actor?.username || "A member";
+
+      const systemMsg = await ctx.db.chatMessage.create({
+        data: {
+          roomId: input.roomId,
+          senderId: userId,
+          content: `📢 ${actorName} renamed the group to "${input.name.trim()}"`,
+          type: "TEXT",
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      return {
+        room: updatedRoom,
+        systemMessage: systemMsg,
+      };
+    }),
+
+  // Add Member to Group Room
+  addMember: protectedProcedure
+    .input(
+      z.object({
+        roomId: z.string().uuid(),
+        userId: z.string().trim().min(1).max(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const currentUserId = ctx.user.id;
+      const room = await ctx.db.chatRoom.findUnique({
+        where: { id: input.roomId },
+        include: {
+          members: true,
+        },
+      });
+
+      if (!room) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Room not found" });
+      }
+
+      if (room.type !== "GROUP") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Members can only be added to group rooms",
+        });
+      }
+
+      const isCurrentMember = room.members.some((m) => m.userId === currentUserId);
+      if (!isCurrentMember) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You must be a member of this group to add someone",
+        });
+      }
+
+      const alreadyMember = room.members.some((m) => m.userId === input.userId);
+      if (alreadyMember) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "User is already a member of this group",
+        });
+      }
+
+      // Ensure user profile exists
+      let targetUser = await ctx.db.user.findUnique({
+        where: { id: input.userId },
+      });
+
+      if (!targetUser) {
+        // Try finding by username
+        targetUser = await ctx.db.user.findUnique({
+          where: { username: input.userId.replace(/^@/, "") },
+        });
+      }
+
+      if (!targetUser) {
+        const cleanId = input.userId.replace(/^@/, "");
+        targetUser = await ctx.db.user.create({
+          data: {
+            id: cleanId.startsWith("usr_") ? cleanId : `usr_${cleanId}`,
+            username: cleanId.toLowerCase(),
+            displayName: cleanId,
+            avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanId}`,
+          },
+        });
+      }
+
+      const newMembership = await ctx.db.chatRoomMember.create({
+        data: {
+          roomId: input.roomId,
+          userId: targetUser.id,
+          isAdmin: false,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+              isOnline: true,
+              lastSeenAt: true,
+            },
+          },
+        },
+      });
+
+      // System notification message in room
+      const actor = await ctx.db.user.findUnique({ where: { id: currentUserId } });
+      const actorName = actor?.displayName || actor?.username || "A member";
+      const targetName = targetUser.displayName || targetUser.username || "New member";
+
+      const systemMsg = await ctx.db.chatMessage.create({
+        data: {
+          roomId: input.roomId,
+          senderId: currentUserId,
+          content: `🎉 ${actorName} added ${targetName} (@${targetUser.username}) to the group`,
+          type: "TEXT",
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      return {
+        member: newMembership,
+        targetUser,
+        systemMessage: systemMsg,
+      };
+    }),
+
+  // Remove Member from Group Room
+  removeMember: protectedProcedure
+    .input(
+      z.object({
+        roomId: z.string().uuid(),
+        userId: z.string().trim().min(1).max(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const currentUserId = ctx.user.id;
+      const room = await ctx.db.chatRoom.findUnique({
+        where: { id: input.roomId },
+        include: {
+          members: true,
+        },
+      });
+
+      if (!room) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Room not found" });
+      }
+
+      const membership = room.members.find((m) => m.userId === input.userId);
+      if (!membership) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User is not a member of this room",
+        });
+      }
+
+      // Check permissions: either admin or leaving self
+      const currentMembership = room.members.find((m) => m.userId === currentUserId);
+      const isSelfLeaving = currentUserId === input.userId;
+      const isAdmin = currentMembership?.isAdmin ?? false;
+
+      if (!isSelfLeaving && !isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only group admins can remove other members",
+        });
+      }
+
+      await ctx.db.chatRoomMember.delete({
+        where: {
+          roomId_userId: {
+            roomId: input.roomId,
+            userId: input.userId,
+          },
+        },
+      });
+
+      const actor = await ctx.db.user.findUnique({ where: { id: currentUserId } });
+      const removedUser = await ctx.db.user.findUnique({ where: { id: input.userId } });
+
+      const actorName = actor?.displayName || actor?.username || "A member";
+      const removedName = removedUser?.displayName || removedUser?.username || "A member";
+
+      const systemMsg = await ctx.db.chatMessage.create({
+        data: {
+          roomId: input.roomId,
+          senderId: currentUserId,
+          content: isSelfLeaving
+            ? `🚪 ${removedName} left the group`
+            : `👋 ${actorName} removed ${removedName} from the group`,
+          type: "TEXT",
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      return {
+        removedUserId: input.userId,
+        systemMessage: systemMsg,
+      };
     }),
 });

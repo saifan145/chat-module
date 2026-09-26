@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { type RoomData, type MessageData, type UserSummary } from "@/types/chat";
 import { MessageList } from "./MessageList";
 import { MessageComposer } from "./MessageComposer";
 import { TypingIndicator } from "./TypingIndicator";
 import { ThreadDrawer } from "./ThreadDrawer";
 import { HuddleBar } from "./HuddleBar";
-import { Phone, MoreHorizontal, Hash, FileText, Radio } from "lucide-react";
+import { RoomManagementModal } from "./RoomManagementModal";
+import { Phone, MoreHorizontal, Hash, FileText, Radio, ArrowLeft } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { type Socket } from "socket.io-client";
 import { soundManager } from "@/utils/sound";
@@ -18,9 +19,11 @@ interface ChatWindowProps {
   onStartTyping: () => void;
   onStopTyping: () => void;
   onMarkRead: () => void;
+  onBack?: () => void;
   onReactMessage?: (messageId: string, emoji: string) => void;
   onEditMessage?: (messageId: string, content: string) => void;
   onDeleteMessage?: (messageId: string) => void;
+  onRoomRenamed?: () => void;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -31,9 +34,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onStartTyping,
   onStopTyping,
   onMarkRead,
+  onBack,
   onReactMessage,
   onEditMessage,
   onDeleteMessage,
+  onRoomRenamed,
 }) => {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -41,6 +46,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [replyingTo, setReplyingTo] = useState<MessageData | null>(null);
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageData | null>(null);
   const [isHuddleActive, setIsHuddleActive] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [activeRoomName, setActiveRoomName] = useState(room.name);
+
+  // Stable references for callbacks to prevent socket listener churn
+  const onMarkReadRef = useRef(onMarkRead);
+  const onRoomRenamedRef = useRef(onRoomRenamed);
+  useEffect(() => {
+    onMarkReadRef.current = onMarkRead;
+    onRoomRenamedRef.current = onRoomRenamed;
+  });
+
+  // Sync active room name when room prop changes
+  useEffect(() => {
+    setActiveRoomName(room.name);
+  }, [room.name]);
 
   // Edit mutation
   const editMutation = trpc.message.edit.useMutation();
@@ -78,9 +98,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         );
         return [...serverMessages, ...activeOptimistics];
       });
-      onMarkRead();
+      onMarkReadRef.current();
     }
-  }, [messagesQuery.data, onMarkRead]);
+  }, [messagesQuery.data]);
 
   // Listen to live WebSocket events
   useEffect(() => {
@@ -125,7 +145,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
           return [...prev, payload.message];
         });
-        onMarkRead();
+        onMarkReadRef.current();
       }
     };
 
@@ -208,12 +228,34 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       }
     };
 
+    const handleRoomUpdated = (payload: { roomId: string; name?: string }) => {
+      if (payload.roomId === room.id && payload.name) {
+        setActiveRoomName(payload.name);
+        onRoomRenamedRef.current?.();
+      }
+    };
+
+    const handleMemberAdded = (payload: { roomId: string; targetName: string }) => {
+      if (payload.roomId === room.id) {
+        onRoomRenamedRef.current?.();
+      }
+    };
+
+    const handleMemberRemoved = (payload: { roomId: string; removedName: string }) => {
+      if (payload.roomId === room.id) {
+        onRoomRenamedRef.current?.();
+      }
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:react", handleReaction);
     socket.on("message:edit", handleMessageEdit);
     socket.on("message:delete", handleMessageDelete);
     socket.on("typing:start", handleTypingStart);
     socket.on("typing:stop", handleTypingStop);
+    socket.on("room:updated", handleRoomUpdated);
+    socket.on("member:added", handleMemberAdded);
+    socket.on("member:removed", handleMemberRemoved);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -222,8 +264,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       socket.off("message:delete", handleMessageDelete);
       socket.off("typing:start", handleTypingStart);
       socket.off("typing:stop", handleTypingStop);
+      socket.off("room:updated", handleRoomUpdated);
+      socket.off("member:added", handleMemberAdded);
+      socket.off("member:removed", handleMemberRemoved);
     };
-  }, [socket, room.id, currentUserId, onMarkRead]);
+  }, [socket, room.id, currentUserId]);
 
   const otherMember =
     room.type === "DIRECT"
@@ -243,7 +288,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const title =
     room.type === "DIRECT"
       ? otherMember?.user.displayName || otherMember?.user.username || "Direct Chat"
-      : room.name || "Channel";
+      : activeRoomName || room.name || "Channel";
 
   const avatarUrl =
     room.type === "DIRECT" ? otherMember?.user.avatarUrl : room.avatarUrl;
@@ -338,27 +383,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="px-6 pt-5 pb-2 border-b border-gray-100 flex flex-col gap-3">
           {/* Contact Info & Actions */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              {/* Mobile Back Button */}
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="md:hidden p-1.5 -ml-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-gray-100 transition-colors"
+                  title="Back to channels list"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              )}
+
               {room.type === "DIRECT" ? (
                 avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt={title}
-                    className="w-9 h-9 rounded-full object-cover bg-gray-100 ring-1 ring-gray-200"
+                    className="w-9 h-9 rounded-full object-cover bg-gray-100 ring-1 ring-gray-200 flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold text-sm">
+                  <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold text-sm flex-shrink-0">
                     {title.charAt(0)}
                   </div>
                 )
               ) : (
-                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0">
                   <Hash className="w-4 h-4" />
                 </div>
               )}
 
-              <div>
-                <h3 className="font-semibold text-slate-900 text-base leading-snug">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-slate-900 text-base leading-snug truncate">
                   {title}
                 </h3>
               </div>
@@ -387,9 +444,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               >
                 <Phone className="w-4 h-4 stroke-[1.8]" />
               </button>
+
+              {/* Group Settings / Member Management Modal Trigger */}
               <button
+                onClick={() => setIsManageModalOpen(true)}
                 className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-slate-900 transition-colors"
-                title="Options"
+                title={room.type === "GROUP" ? "Manage group & members" : "Chat options"}
               >
                 <MoreHorizontal className="w-4 h-4 stroke-[1.8]" />
               </button>
@@ -507,6 +567,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           parentMessage={activeThreadMessage}
           onClose={() => setActiveThreadMessage(null)}
           currentUserId={currentUserId}
+          currentUser={mySender}
           onSendReply={async (content) => {
             return onSendMessage({
               content,
@@ -516,6 +577,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           }}
         />
       )}
+
+      {/* Room / Group Management Modal */}
+      <RoomManagementModal
+        room={room}
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        currentUserId={currentUserId}
+        socket={socket}
+        onRoomUpdated={(newName) => {
+          setActiveRoomName(newName);
+          onRoomRenamed?.();
+        }}
+      />
     </div>
   );
 };

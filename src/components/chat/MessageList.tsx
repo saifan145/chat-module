@@ -49,19 +49,59 @@ export const MessageList: React.FC<MessageListProps> = ({
           No messages in this conversation yet. Send the first message!
         </div>
       ) : (
-        messages.map((msg) => (
-          <MessageItem
-            key={msg.id}
-            message={msg}
-            isSelf={msg.senderId === currentUserId}
-            onQuoteReply={onQuoteReply}
-            onOpenThread={onOpenThread}
-            onReact={onReact}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            currentUserId={currentUserId}
-          />
-        ))
+        messages.map((msg, idx) => {
+          const prevMsg = idx > 0 ? messages[idx - 1] : null;
+          const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
+
+          const isActivity =
+            msg.content &&
+            (msg.content.startsWith("📢") ||
+              msg.content.startsWith("🎉") ||
+              msg.content.startsWith("👋") ||
+              msg.content.startsWith("🚪"));
+
+          const isFirstInGroup =
+            !prevMsg ||
+            prevMsg.senderId !== msg.senderId ||
+            Boolean(
+              prevMsg.content &&
+                (prevMsg.content.startsWith("📢") ||
+                  prevMsg.content.startsWith("🎉") ||
+                  prevMsg.content.startsWith("👋") ||
+                  prevMsg.content.startsWith("🚪"))
+            ) ||
+            new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() >
+              5 * 60 * 1000;
+
+          const isLastInGroup =
+            !nextMsg ||
+            nextMsg.senderId !== msg.senderId ||
+            Boolean(
+              nextMsg.content &&
+                (nextMsg.content.startsWith("📢") ||
+                  nextMsg.content.startsWith("🎉") ||
+                  nextMsg.content.startsWith("👋") ||
+                  nextMsg.content.startsWith("🚪"))
+            ) ||
+            new Date(nextMsg.createdAt).getTime() - new Date(msg.createdAt).getTime() >
+              5 * 60 * 1000;
+
+          return (
+            <MessageItem
+              key={msg.id}
+              message={msg}
+              isSelf={msg.senderId === currentUserId}
+              isFirstInGroup={isFirstInGroup}
+              isLastInGroup={isLastInGroup}
+              onQuoteReply={onQuoteReply}
+              onOpenThread={onOpenThread}
+              onReact={onReact}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              currentUserId={currentUserId}
+            />
+          );
+        })
       )}
 
       <div ref={bottomRef} />

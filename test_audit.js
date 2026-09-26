@@ -315,11 +315,12 @@ async function runTests() {
   }
 
   // 8. WebSocket Integration & Security: Handshake (Status 101) & Real-Time Messaging
+  await httpRequest("/api/socketio");
   await new Promise((resolve) => {
     const socket = ClientIO("http://localhost:3000", {
       path: "/api/socketio",
       auth: { token: "usr_demo_saifan" },
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"],
       reconnection: false,
     });
 

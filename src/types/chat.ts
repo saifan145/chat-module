@@ -92,7 +92,42 @@ export type ChatEvent =
   | "message:delivered"
   | "message:react"
   | "message:edit"
-  | "message:delete";
+  | "message:delete"
+  | "room:updated"
+  | "member:added"
+  | "member:removed"
+  | "user:updated"
+  | "notification.created";
+
+export type NotificationType =
+  | "MENTION"
+  | "CHANNEL_MENTION"
+  | "DIRECT_MESSAGE"
+  | "CHANNEL_POST"
+  | "THREAD_REPLY";
+
+export interface NotificationItem {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  actorId: string;
+  roomId: string | null;
+  messageId: string | null;
+  previewText: string | null;
+  isRead: boolean;
+  createdAt: string;
+  actor: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  };
+  room?: {
+    id: string;
+    name: string | null;
+    type: RoomType;
+  } | null;
+}
 
 export interface MessageSendPayload {
   roomId: string;

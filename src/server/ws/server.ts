@@ -10,33 +10,82 @@ import {
   type TypingUpdatePayload,
   type PresenceUpdatePayload,
 } from "../../types/chat";
+import { processMessageNotifications } from "../services/notification";
 
 interface AuthedSocket extends Socket {
   user?: SessionUser;
 }
 
-const roomChannel = (roomId: string) => `room:${roomId}`;
-const userChannel = (userId: string) => `user:${userId}`;
+let globalIO: SocketIOServer | null = null;
+
+export const getIO = (): SocketIOServer | null => {
+  return globalIO || (globalThis as any).__socketIO || null;
+};
+
+export const roomChannel = (roomId: string) => `room:${roomId}`;
+export const userChannel = (userId: string) => `user:${userId}`;
+
+export const emitToUser = (userId: string, event: string, payload: any) => {
+  const io = getIO();
+  if (io) {
+    io.to(userChannel(userId)).emit(event, payload);
+  }
+};
 
 export function setupWebSocketServer(httpServer: HTTPServer) {
+  const isProduction = process.env.NODE_ENV === "production";
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const allowedOrigins = [
+    configuredAppUrl,
+    configuredAppUrl.replace(/\/$/, ""),
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ];
+
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: "*",
+      origin: (requestOrigin, callback) => {
+        // Allow requests with no origin (e.g. mobile native clients or curl)
+        if (!requestOrigin) {
+          return callback(null, true);
+        }
+
+        if (isProduction) {
+          if (allowedOrigins.includes(requestOrigin)) {
+            return callback(null, true);
+          }
+          console.warn(`[Security Alert] Blocked WebSocket connection from untrusted origin: ${requestOrigin}`);
+          return callback(new Error("Origin not allowed by WebSocket CORS policy"), false);
+        }
+
+        // Permissive in local development
+        return callback(null, true);
+      },
       methods: ["GET", "POST"],
+      credentials: true,
     },
     path: "/api/socketio",
   });
 
+  globalIO = io;
+  (globalThis as any).__socketIO = io;
+
   // Authentication Middleware (Section 13)
   io.use(async (socket: AuthedSocket, next) => {
     try {
-      const token =
+      const rawToken =
         (socket.handshake.auth?.token as string) ||
         (socket.handshake.headers?.authorization as string) ||
         (socket.handshake.headers?.["x-user-id"] as string);
 
+      const normalizedAuth =
+        rawToken && !rawToken.toLowerCase().startsWith("bearer ") && rawToken.includes(".")
+          ? `Bearer ${rawToken}`
+          : rawToken;
+
       const user = await authenticateUser({
-        authorization: token,
+        authorization: normalizedAuth,
+        "x-user-id": socket.handshake.headers?.["x-user-id"] as string,
       });
 
       if (!user) {
@@ -50,7 +99,7 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
     }
   });
 
-  io.on("connection", async (socket: AuthedSocket) => {
+  io.on("connection", (socket: AuthedSocket) => {
     const user = socket.user;
     if (!user) {
       socket.disconnect();
@@ -58,30 +107,34 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
     }
 
     // Join personal user room for multi-tab/device fan-out
-    await socket.join(userChannel(user.id));
+    socket.join(userChannel(user.id));
 
-    // Automatically join all active conversation rooms the user is in
-    const memberships = await db.chatRoomMember.findMany({
-      where: { userId: user.id },
-      select: { roomId: true },
-    });
+    // Asynchronously join active rooms & broadcast presence without blocking listener registration
+    (async () => {
+      try {
+        const memberships = await db.chatRoomMember.findMany({
+          where: { userId: user.id },
+          select: { roomId: true },
+        });
 
-    for (const { roomId } of memberships) {
-      await socket.join(roomChannel(roomId));
-    }
+        for (const { roomId } of memberships) {
+          socket.join(roomChannel(roomId));
+        }
 
-    // Update user online status
-    await db.user.update({
-      where: { id: user.id },
-      data: { isOnline: true },
-    });
+        await db.user.update({
+          where: { id: user.id },
+          data: { isOnline: true },
+        });
 
-    // Broadcast presence
-    const presencePayload: PresenceUpdatePayload = {
-      userId: user.id,
-      isOnline: true,
-    };
-    io.emit("presence:update", presencePayload);
+        const presencePayload: PresenceUpdatePayload = {
+          userId: user.id,
+          isOnline: true,
+        };
+        io.emit("presence:update", presencePayload);
+      } catch (err) {
+        console.error("Background presence setup error:", err);
+      }
+    })();
 
     // --- Events (Section 6) --------------------------------------------------
 
@@ -244,11 +297,19 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
         // Ensure sender socket is in roomChannel
         await socket.join(roomChannel(dto.roomId));
 
-        // Broadcast to conversation room (including sender tabs)
+        // Broadcast to conversation room (including sender socket and other member tabs)
         io.to(roomChannel(dto.roomId)).emit("message:new", formattedPayload);
 
-        // Also emit directly to the sender socket to guarantee immediate receipt
-        socket.emit("message:new", formattedPayload);
+        // Asynchronously process notifications (mentions, DMs, thread replies)
+        processMessageNotifications({
+          messageId: message.id,
+          roomId: message.roomId,
+          senderId: user.id,
+          content: message.content,
+          replyToId: message.replyToId,
+        }).catch((err) => {
+          console.error("[Notification trigger error]", err);
+        });
 
         if (callback) callback({ status: "ok", messageId: message.id, message: formattedPayload.message });
       } catch (err) {
@@ -324,6 +385,40 @@ export function setupWebSocketServer(httpServer: HTTPServer) {
     socket.on("message:delete", (data: { roomId: string; messageId: string }) => {
       io.to(roomChannel(data.roomId)).emit("message:delete", data);
     });
+
+    // 9. Room Update Sync (Name change, avatar update)
+    socket.on("room:update", (data: { roomId: string; name?: string; avatarUrl?: string }) => {
+      io.emit("room:updated", data); // broadcast so all members and active room listeners receive update
+    });
+
+    // 10. Member Added Sync
+    socket.on(
+      "member:add",
+      (data: { roomId: string; member: any; actorName: string; targetName: string }) => {
+        io.to(roomChannel(data.roomId)).emit("member:added", data);
+        // Also notify the target user's direct channel
+        if (data.member?.userId) {
+          io.to(userChannel(data.member.userId)).emit("member:added", data);
+        }
+      }
+    );
+
+    // 11. Member Removed Sync
+    socket.on(
+      "member:remove",
+      (data: { roomId: string; userId: string; actorName: string; removedName: string }) => {
+        io.to(roomChannel(data.roomId)).emit("member:removed", data);
+        io.to(userChannel(data.userId)).emit("member:removed", data);
+      }
+    );
+
+    // 12. User Profile / Handle Update Sync
+    socket.on(
+      "user:update",
+      (data: { userId: string; displayName?: string; username?: string; avatarUrl?: string }) => {
+        io.emit("user:updated", data);
+      }
+    );
 
     // Disconnection
     socket.on("disconnect", async () => {

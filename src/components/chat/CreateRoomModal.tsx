@@ -20,8 +20,6 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
   const createRoomMutation = trpc.room.create.useMutation();
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userIdInput.trim()) return;
@@ -47,6 +45,8 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
       setIsLoading(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">

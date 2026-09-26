@@ -7,6 +7,11 @@
   --background: #ffffff;
 }
 
+.dark {
+  --foreground: #f1f5f9;
+  --background: #0f172a;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);
@@ -15,6 +20,135 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Global Dark Mode Overrides for seamlessly styling standard surfaces */
+.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* NavRail in dark mode */
+.dark nav {
+  background-color: #0b0f19 !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+.dark nav button.bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #818cf8 !important;
+}
+
+.dark nav button:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+}
+
+/* Sidebar in dark mode */
+.dark aside {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+.dark aside h2,
+.dark aside h3,
+.dark aside span {
+  color: #f3f4f6;
+}
+
+.dark aside button {
+  color: #d1d5db;
+}
+
+.dark aside button:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff;
+}
+
+.dark aside button.bg-gray-200\/80 {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+.dark aside .border-b,
+.dark aside .border-gray-100 {
+  border-color: #1f2937 !important;
+}
+
+/* Main workspace viewport in dark mode */
+.dark main {
+  background-color: #0f172a !important;
+}
+
+.dark main > div {
+  background-color: #0f172a;
+}
+
+/* Chat window in dark mode */
+.dark .bg-white {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-\[\#f8f9fb\] {
+  background-color: #111827 !important;
+}
+
+.dark .bg-\[\#f8f9fa\] {
+  background-color: #0b0f19 !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-200\/80,
+.dark .border-gray-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/60 {
+  border-color: #1e293b !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400,
+.dark .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* Incoming message bubbles in dark mode */
+.dark .bg-\[\#f1f3f5\] {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+/* Outgoing message bubbles in dark mode */
+.dark .bg-\[\#18191d\] {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+/* Composer in dark mode */
+.dark textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark textarea::placeholder {
+  color: #64748b !important;
 }
 
 /* Custom modern subtle scrollbars */
@@ -34,4 +168,12 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
 }

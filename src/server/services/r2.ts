@@ -6,6 +6,8 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
 
 const UPLOAD_EXPIRY_SECONDS = 60 * 5; // 5 minutes
 const VIEW_EXPIRY_SECONDS = 60 * 60; // 1 hour
@@ -31,6 +33,16 @@ export const r2Client = new S3Client({
     secretAccessKey,
   },
 });
+
+/**
+ * Checks whether remote Cloudflare R2 is enabled and explicitly configured.
+ * Default is resilient local server storage if R2 is not explicitly activated with R2_ENABLED=true.
+ */
+export function isR2Configured(): boolean {
+  if (process.env.STORAGE_DRIVER === "local") return false;
+  if (process.env.R2_ENABLED === "false") return false;
+  return Boolean(process.env.R2_ENABLED === "true" && accountId && accessKeyId && secretAccessKey);
+}
 
 /**
  * Deterministic object path structure per TL Spec Section 11:
@@ -60,45 +72,88 @@ export async function createPresignedUploadUrl(
   const key = buildDeterministicKey(roomId, fileName);
   const bucket = getFullBucketName();
 
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-  });
+  if (isR2Configured()) {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      });
 
-  const uploadUrl = await getSignedUrl(r2Client, command, {
-    expiresIn: UPLOAD_EXPIRY_SECONDS,
-  });
+      const uploadUrl = await getSignedUrl(r2Client, command, {
+        expiresIn: UPLOAD_EXPIRY_SECONDS,
+      });
 
+      return {
+        uploadUrl,
+        key,
+        publicUrl: isPublicBucket && publicBaseUrl ? `${publicBaseUrl}/${key}` : null,
+        expiresIn: UPLOAD_EXPIRY_SECONDS,
+      };
+    } catch (e) {
+      console.warn("R2 presigned URL generation failed, falling back to local storage:", e);
+    }
+  }
+
+  // Resilient fallback: internal server storage endpoint
   return {
-    uploadUrl,
+    uploadUrl: `/api/upload?key=${encodeURIComponent(key)}`,
     key,
-    publicUrl: isPublicBucket && publicBaseUrl ? `${publicBaseUrl}/${key}` : null,
+    publicUrl: `/uploads/${key}`,
     expiresIn: UPLOAD_EXPIRY_SECONDS,
   };
 }
 
 export async function createPresignedViewUrl(key: string): Promise<string> {
+  // Check if file was stored locally in public/uploads/
+  const localRelative = key.replace(/\\/g, "/");
+  const localDiskPath = path.join(process.cwd(), "public", "uploads", ...localRelative.split("/"));
+
+  if (fs.existsSync(localDiskPath)) {
+    return `/uploads/${localRelative}`;
+  }
+
   if (isPublicBucket && publicBaseUrl) {
     return `${publicBaseUrl}/${key}`;
   }
 
-  const bucket = getFullBucketName();
-  const command = new GetObjectCommand({
-    Bucket: bucket,
-    Key: key,
-  });
+  if (isR2Configured()) {
+    try {
+      const bucket = getFullBucketName();
+      const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      });
 
-  return getSignedUrl(r2Client, command, {
-    expiresIn: VIEW_EXPIRY_SECONDS,
-  });
+      return await getSignedUrl(r2Client, command, {
+        expiresIn: VIEW_EXPIRY_SECONDS,
+      });
+    } catch {
+      return `/uploads/${localRelative}`;
+    }
+  }
+
+  return `/uploads/${localRelative}`;
 }
 
 export async function deleteR2Object(key: string): Promise<void> {
-  const bucket = getFullBucketName();
-  await r2Client.send(
-    new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    })
-  );
+  // Delete local file if present
+  try {
+    const localRelative = key.replace(/\\/g, "/");
+    const localDiskPath = path.join(process.cwd(), "public", "uploads", ...localRelative.split("/"));
+    if (fs.existsSync(localDiskPath)) {
+      fs.unlinkSync(localDiskPath);
+    }
+  } catch {}
+
+  if (isR2Configured()) {
+    try {
+      const bucket = getFullBucketName();
+      await r2Client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        })
+      );
+    } catch {}
+  }
 }

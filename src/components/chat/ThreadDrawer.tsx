@@ -8,6 +8,7 @@ interface ThreadDrawerProps {
   parentMessage: MessageData;
   onClose: () => void;
   currentUserId: string;
+  currentUser?: UserSummary;
   onSendReply: (content: string) => Promise<any>;
 }
 
@@ -15,6 +16,7 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
   parentMessage,
   onClose,
   currentUserId,
+  currentUser,
   onSendReply,
 }) => {
   const [replyText, setReplyText] = useState("");
@@ -43,11 +45,11 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
       content,
       type: "TEXT",
       createdAt: new Date().toISOString(),
-      sender: {
+      sender: currentUser || {
         id: currentUserId,
-        username: "saifan",
-        displayName: "Saifan",
-        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+        username: "user",
+        displayName: "You",
+        avatarUrl: null,
         isOnline: true,
         lastSeenAt: new Date().toISOString(),
       },
@@ -129,40 +131,68 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
             No replies in this thread yet. Start the conversation!
           </div>
         ) : (
-          allReplies.map((reply) => (
-            <div key={reply.id} className="flex items-start gap-2.5 px-1 text-xs">
-              {reply.sender?.avatarUrl ? (
-                <img
-                  src={reply.sender.avatarUrl}
-                  alt={reply.sender.displayName}
-                  className="w-6 h-6 rounded-full object-cover mt-0.5"
-                />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] mt-0.5">
-                  {reply.sender?.displayName?.charAt(0) || "U"}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="font-semibold text-slate-900 text-[12px]">
-                    {reply.sender?.displayName || "Member"}
-                  </span>
-                  <span className="text-[10px] text-gray-400">
+          allReplies.map((reply) => {
+            const isSelfReply = reply.senderId === currentUserId;
+            return (
+              <div
+                key={reply.id}
+                className={`flex items-end gap-2 text-xs ${
+                  isSelfReply ? "justify-end" : "justify-start"
+                }`}
+              >
+                {!isSelfReply && (
+                  <div className="flex-shrink-0 w-6 h-6 mb-1">
+                    {reply.sender?.avatarUrl ? (
+                      <img
+                        src={reply.sender.avatarUrl}
+                        alt={reply.sender.displayName}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px]">
+                        {reply.sender?.displayName?.charAt(0) || "U"}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] p-2.5 rounded-2xl ${
+                    isSelfReply
+                      ? "bg-[#18191d] text-white rounded-tr-xs"
+                      : "bg-[#f1f3f5] text-slate-900 border border-gray-200/70 rounded-tl-xs"
+                  }`}
+                >
+                  {!isSelfReply && (
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="font-bold text-indigo-600 text-[11.5px]">
+                        {reply.sender?.displayName || "Member"}
+                      </span>
+                    </div>
+                  )}
+                  {reply.content && (
+                    <div className="break-words">
+                      <FormattedText
+                        content={reply.content}
+                        className={`text-[12px] leading-relaxed ${
+                          isSelfReply ? "text-white" : "text-slate-800"
+                        }`}
+                      />
+                    </div>
+                  )}
+                  <div
+                    className={`text-[10px] mt-1 text-right select-none ${
+                      isSelfReply ? "text-gray-400" : "text-gray-400"
+                    }`}
+                  >
                     {new Date(reply.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                  </span>
+                  </div>
                 </div>
-                {reply.content && (
-                  <FormattedText
-                    content={reply.content}
-                    className="text-[12.5px] text-slate-800 font-normal"
-                  />
-                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { createPresignedUploadUrl, createPresignedViewUrl } from "../../services/r2";
+import { uploadRateLimiter } from "../../services/rateLimiter";
 
 export const uploadRouter = createTRPCRouter({
   // Initiate upload with authorization & deterministic key generation (Section 10, 11, 12)
@@ -9,13 +10,27 @@ export const uploadRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.string().uuid(),
-        fileName: z.string().min(1),
-        contentType: z.string().min(1),
-        fileSizeBytes: z.number().max(50 * 1024 * 1024), // Max 50MB per file
+        fileName: z.string().trim().min(1).max(255),
+        contentType: z.string().trim().min(1).max(100),
+        fileSizeBytes: z
+          .number()
+          .min(1)
+          .max(20 * 1024 * 1024, "File size exceeds maximum allowed limit of 20MB"),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Validate authenticated user is a room member (Section 12, step 5)
+      // 1. Enforce upload rate limiting (max 10 uploads per minute per user)
+      const rateLimit = uploadRateLimiter.check(ctx.user.id);
+      if (!rateLimit.allowed) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: `Upload rate limit exceeded. Please wait ${Math.ceil(
+            rateLimit.resetMs / 1000
+          )} seconds before requesting another upload.`,
+        });
+      }
+
+      // 2. Validate authenticated user is a room member (Section 12, step 5)
       const member = await ctx.db.chatRoomMember.findUnique({
         where: {
           roomId_userId: {
@@ -32,7 +47,7 @@ export const uploadRouter = createTRPCRouter({
         });
       }
 
-      // Generate deterministic R2 upload authorization
+      // 3. Generate deterministic R2 upload authorization
       const result = await createPresignedUploadUrl(
         input.roomId,
         input.fileName,

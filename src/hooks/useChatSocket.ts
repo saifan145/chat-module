@@ -4,6 +4,7 @@ import { type ConnectionState, type MessageData, type MessageNewPayload } from "
 
 export function useChatSocket(userId: string) {
   const [connectionState, setConnectionState] = useState<ConnectionState>("DISCONNECTED");
+  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export function useChatSocket(userId: string) {
       socket.on("connect", () => {
         if (!isMounted) return;
         setConnectionState("CONNECTED");
+        setSocketInstance(socket);
       });
 
       socket.on("disconnect", (reason) => {
@@ -40,6 +42,7 @@ export function useChatSocket(userId: string) {
       });
 
       socketRef.current = socket;
+      setSocketInstance(socket);
     });
 
     return () => {
@@ -110,7 +113,7 @@ export function useChatSocket(userId: string) {
   }, []);
 
   return {
-    socket: socketRef.current,
+    socket: socketInstance,
     connectionState,
     joinRoom,
     leaveRoom,

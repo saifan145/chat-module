@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { createPresignedViewUrl } from "../../services/r2";
+import { processMessageNotifications } from "../../services/notification";
 
 export const messageRouter = createTRPCRouter({
   // Message history with efficient cursor pagination (Section 8)
@@ -152,19 +153,20 @@ export const messageRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.string().uuid(),
-        content: z.string().optional(),
+        content: z.string().max(10000).optional(),
         type: z.enum(["TEXT", "IMAGE", "FILE"]).default("TEXT"),
-        mediaUrl: z.string().optional(),
-        replyToId: z.string().optional(),
+        mediaUrl: z.string().url().max(1000).optional(),
+        replyToId: z.string().uuid().optional(),
         attachments: z
           .array(
             z.object({
-              objectKey: z.string(),
-              fileName: z.string(),
-              mimeType: z.string(),
-              size: z.number(),
+              objectKey: z.string().min(1).max(500),
+              fileName: z.string().min(1).max(255),
+              mimeType: z.string().min(1).max(100),
+              size: z.number().min(0).max(25 * 1024 * 1024),
             })
           )
+          .max(10)
           .optional(),
       })
     )
@@ -258,6 +260,17 @@ export const messageRouter = createTRPCRouter({
           return created;
         });
 
+        // Trigger notifications for mentions, DMs, thread replies
+        processMessageNotifications({
+          messageId: message.id,
+          roomId: message.roomId,
+          senderId,
+          content: message.content,
+          replyToId: message.replyToId,
+        }).catch((err) => {
+          console.error("[Notification trigger error from tRPC]", err);
+        });
+
         return {
           id: message.id,
           roomId: message.roomId,
@@ -331,7 +344,7 @@ export const messageRouter = createTRPCRouter({
     .input(
       z.object({
         messageId: z.string().uuid(),
-        content: z.string().min(1),
+        content: z.string().trim().min(1).max(10000),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -393,6 +406,34 @@ export const messageRouter = createTRPCRouter({
   listReplies: protectedProcedure
     .input(z.object({ parentMessageId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const parent = await ctx.db.chatMessage.findUnique({
+        where: { id: input.parentMessageId },
+        select: { roomId: true },
+      });
+
+      if (!parent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Message not found",
+        });
+      }
+
+      const isMember = await ctx.db.chatRoomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId: parent.roomId,
+            userId: ctx.user.id,
+          },
+        },
+      });
+
+      if (!isMember) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not a member of this chat room",
+        });
+      }
+
       const replies = await ctx.db.chatMessage.findMany({
         where: {
           replyToId: input.parentMessageId,

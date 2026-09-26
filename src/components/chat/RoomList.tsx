@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { type RoomData } from "@/types/chat";
 import { RoomItem } from "./RoomItem";
 import {
-  Send,
   ChevronDown,
   ChevronRight,
   Plus,
   Hash,
+  Send,
+  Users,
 } from "lucide-react";
 
 interface RoomListProps {
@@ -15,6 +16,7 @@ interface RoomListProps {
   currentUserId: string;
   onSelectRoom: (roomId: string) => void;
   onCreateRoom: () => void;
+  viewMode?: "channels" | "dms";
 }
 
 export const RoomList: React.FC<RoomListProps> = ({
@@ -23,11 +25,12 @@ export const RoomList: React.FC<RoomListProps> = ({
   currentUserId,
   onSelectRoom,
   onCreateRoom,
+  viewMode = "channels",
 }) => {
-  const [isDmsOpen, setIsDmsOpen] = useState(true);
   const [isTeamProjectsOpen, setIsTeamProjectsOpen] = useState(true);
   const [isInternalsOpen, setIsInternalsOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isOtherChannelsOpen, setIsOtherChannelsOpen] = useState(true);
 
   // Separate direct messages vs channels
   const directRooms = rooms.filter((r) => r.type === "DIRECT");
@@ -49,56 +52,85 @@ export const RoomList: React.FC<RoomListProps> = ({
       !feedbackRooms.includes(r)
   );
 
+  // VIEW MODE: DIRECT MESSAGES ONLY
+  if (viewMode === "dms") {
+    return (
+      <div className="flex flex-col h-full select-none text-slate-800">
+        {/* DMs Header */}
+        <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100 bg-[#f8f9fb]">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900">
+              Direct Messages
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {directRooms.length} active {directRooms.length === 1 ? "conversation" : "conversations"}
+            </p>
+          </div>
+          <button
+            onClick={onCreateRoom}
+            className="p-1.5 rounded-lg hover:bg-gray-200/80 text-gray-500 hover:text-slate-900 transition-colors"
+            title="New Direct Message"
+          >
+            <Plus className="w-5 h-5 stroke-[2]" />
+          </button>
+        </div>
+
+        {/* Scrollable Direct Messages List */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin">
+          {directRooms.length > 0 ? (
+            directRooms.map((room) => (
+              <RoomItem
+                key={room.id}
+                room={room}
+                isSelected={room.id === selectedRoomId}
+                currentUserId={currentUserId}
+                onClick={() => onSelectRoom(room.id)}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400">
+              <Send className="w-8 h-8 stroke-[1.5] text-slate-300 mb-2 rotate-[-25deg]" />
+              <p className="text-xs font-medium text-slate-600 mb-1">No direct messages yet</p>
+              <p className="text-[11px] text-slate-400 max-w-[180px]">
+                Start a 1:1 conversation with any team member.
+              </p>
+              <button
+                onClick={onCreateRoom}
+                className="mt-3 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors"
+              >
+                Start a conversation
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // VIEW MODE: CHANNELS ONLY ('home')
   return (
     <div className="flex flex-col h-full select-none text-slate-800">
       {/* Channels Header */}
-      <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
-        <h2 className="text-xl font-bold tracking-tight text-slate-900">
-          Channels
-        </h2>
+      <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100 bg-[#f8f9fb]">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+            Channels
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Team Projects, Internals & Feedback
+          </p>
+        </div>
         <button
           onClick={onCreateRoom}
           className="p-1.5 rounded-lg hover:bg-gray-200/80 text-gray-500 hover:text-slate-900 transition-colors"
-          title="New conversation"
+          title="Create channel"
         >
           <Plus className="w-5 h-5 stroke-[2]" />
         </button>
       </div>
 
-      {/* Scrollable Channels & DMs List */}
+      {/* Scrollable Channels List Only (No Direct Messages) */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 scrollbar-thin">
-        {/* Direct Messages Section */}
-        <div>
-          <button
-            onClick={() => setIsDmsOpen(!isDmsOpen)}
-            className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
-          >
-            <div className="flex items-center gap-2">
-              <Send className="w-3.5 h-3.5 text-gray-400 rotate-[-25deg]" />
-              <span>Direct Messages</span>
-            </div>
-            {isDmsOpen ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            )}
-          </button>
-
-          {isDmsOpen && (
-            <div className="mt-1 space-y-0.5">
-              {directRooms.map((room) => (
-                <RoomItem
-                  key={room.id}
-                  room={room}
-                  isSelected={room.id === selectedRoomId}
-                  currentUserId={currentUserId}
-                  onClick={() => onSelectRoom(room.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* Team Projects Section */}
         <div>
           <button
@@ -129,7 +161,7 @@ export const RoomList: React.FC<RoomListProps> = ({
                   />
                 ))
               ) : (
-                <div className="px-3 py-1.5 text-xs text-slate-400"># general</div>
+                <div className="px-3 py-1.5 text-xs text-slate-400"># team-updates</div>
               )}
             </div>
           )}
@@ -209,21 +241,35 @@ export const RoomList: React.FC<RoomListProps> = ({
 
         {/* Other Channels */}
         {otherGroupRooms.length > 0 && (
-          <div className="pt-2">
-            <span className="px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Other Channels
-            </span>
-            <div className="mt-1 space-y-0.5">
-              {otherGroupRooms.map((room) => (
-                <RoomItem
-                  key={room.id}
-                  room={room}
-                  isSelected={room.id === selectedRoomId}
-                  currentUserId={currentUserId}
-                  onClick={() => onSelectRoom(room.id)}
-                />
-              ))}
-            </div>
+          <div>
+            <button
+              onClick={() => setIsOtherChannelsOpen(!isOtherChannelsOpen)}
+              className="w-full px-2 py-1.5 flex items-center justify-between text-slate-700 hover:text-slate-900 group font-medium text-[13.5px]"
+            >
+              <div className="flex items-center gap-2">
+                <Hash className="w-3.5 h-3.5 text-gray-400" />
+                <span>Other Channels</span>
+              </div>
+              {isOtherChannelsOpen ? (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              )}
+            </button>
+
+            {isOtherChannelsOpen && (
+              <div className="mt-1 space-y-0.5">
+                {otherGroupRooms.map((room) => (
+                  <RoomItem
+                    key={room.id}
+                    room={room}
+                    isSelected={room.id === selectedRoomId}
+                    currentUserId={currentUserId}
+                    onClick={() => onSelectRoom(room.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

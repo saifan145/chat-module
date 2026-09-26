@@ -20,6 +20,8 @@ model User {
   messageReceipts MessageReceipt[]
   sentMessages    ChatMessage[]
   memberships     ChatRoomMember[]
+  receivedNotifications Notification[]   @relation("UserNotifications")
+  triggeredNotifications Notification[]  @relation("ActorNotifications")
 
   @@map("users")
 }
@@ -32,8 +34,9 @@ model ChatRoom {
   createdBy String?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  messages  ChatMessage[]
-  members   ChatRoomMember[]
+  messages      ChatMessage[]
+  members       ChatRoomMember[]
+  notifications Notification[]
 
   @@map("chat_rooms")
 }
@@ -69,8 +72,9 @@ model ChatMessage {
   receipts    MessageReceipt[]
   replyTo     ChatMessage?     @relation("MessageReplies", fields: [replyToId], references: [id])
   replies     ChatMessage[]    @relation("MessageReplies")
-  room        ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender      User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  room          ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender        User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  notifications Notification[]
 
   @@index([roomId, createdAt(sort: Desc)])
   @@index([senderId])
@@ -120,4 +124,33 @@ enum DeliveryStatus {
   SENT
   DELIVERED
   READ
+}
+
+enum NotificationType {
+  MENTION
+  CHANNEL_MENTION
+  DIRECT_MESSAGE
+  CHANNEL_POST
+  THREAD_REPLY
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String           @map("user_id")
+  type        NotificationType
+  actorId     String           @map("actor_id")
+  roomId      String?          @map("room_id")
+  messageId   String?          @map("message_id")
+  previewText String?          @map("preview_text")
+  isRead      Boolean          @default(false) @map("is_read")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  user    User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor   User      @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: Cascade)
+  room    ChatRoom? @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  message ChatMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
 }

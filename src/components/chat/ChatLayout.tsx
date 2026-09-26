@@ -1,58 +1,83 @@
 import React, { ReactNode } from "react";
 import { type ConnectionState, type UserSummary } from "@/types/chat";
 import { WifiOff, RefreshCw } from "lucide-react";
-import { NavRail } from "./NavRail";
+import { NavRail, type NavSection } from "./NavRail";
 import { WorkspaceTopBar } from "./WorkspaceTopBar";
 
 interface ChatLayoutProps {
   children: ReactNode;
   sidebar?: ReactNode;
-  activeView: "chat" | "files" | "team";
-  onViewChange: (view: "chat" | "files" | "team") => void;
+  activeSection: NavSection;
+  onSectionChange: (section: NavSection) => void;
   connectionState: ConnectionState;
   currentUser: UserSummary;
   onOpenSearch: () => void;
   onOpenProfile: () => void;
+  onOpenActivity?: () => void;
+  onCreateAction?: () => void;
+  unreadNotificationsCount?: number;
+  isRoomSelected?: boolean;
 }
 
 export const ChatLayout: React.FC<ChatLayoutProps> = ({
   children,
   sidebar,
-  activeView,
-  onViewChange,
+  activeSection,
+  onSectionChange,
   connectionState,
   currentUser,
   onOpenSearch,
   onOpenProfile,
+  onOpenActivity,
+  onCreateAction,
+  unreadNotificationsCount = 0,
+  isRoomSelected = false,
 }) => {
+  // Whether the sidebar list column (Channels or DMs) should be shown
+  const isSidebarVisible = activeSection === "home" || activeSection === "dms";
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-white flex flex-col font-sans antialiased text-slate-800">
-      {/* Workspace Top Bar with Slack-inspired search and quick actions */}
+      {/* Workspace Top Bar with search and actions */}
       <WorkspaceTopBar
         onOpenSearch={onOpenSearch}
         currentUser={currentUser}
         onOpenProfile={onOpenProfile}
+        onOpenActivity={onOpenActivity}
+        unreadNotificationsCount={unreadNotificationsCount}
       />
 
       {/* Main Workspace Body */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Leftmost Navigation Rail */}
-        <NavRail
-          activeTab={activeView}
-          onTabChange={(tab) => onViewChange(tab as any)}
-          currentUser={currentUser}
-          onOpenProfile={onOpenProfile}
-        />
+        {/* Leftmost Navigation Rail: Dark Purple, Fixed Width, Always Visible */}
+        <div className="flex flex-shrink-0 z-20">
+          <NavRail
+            activeSection={activeSection}
+            onSectionChange={onSectionChange}
+            currentUser={currentUser}
+            onOpenProfile={onOpenProfile}
+            onCreateAction={onCreateAction}
+            unreadNotificationsCount={unreadNotificationsCount}
+          />
+        </div>
 
-        {/* Second Column: Channels & DMs Sidebar (Only shown in chat view) */}
-        {activeView === "chat" && sidebar && (
-          <aside className="w-72 md:w-80 flex-shrink-0 bg-[#f8f9fb] border-r border-gray-200/80 flex flex-col">
+        {/* Second Column: Sidebar Content (Channels when 'home', DMs when 'dms') */}
+        {isSidebarVisible && sidebar && (
+          <aside
+            className={`w-full md:w-80 flex-shrink-0 bg-[#f8f9fb] border-r border-gray-200/80 flex flex-col ${
+              isRoomSelected ? "hidden md:flex" : "flex"
+            }`}
+          >
             {sidebar}
           </aside>
         )}
 
-        {/* Third Column / Main Viewport */}
-        <main className="flex-1 flex flex-col relative bg-white overflow-hidden">
+        {/* Third Column / Main Viewport (Always preserves conversation state) */}
+        <main
+          className={`flex-1 flex flex-col relative bg-white overflow-hidden ${
+            !isRoomSelected && isSidebarVisible ? "hidden md:flex" : "flex"
+          }`}
+        >
           {/* Connection status badge if not connected */}
           {connectionState !== "CONNECTED" && (
             <div className="absolute top-4 right-6 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border shadow-lg backdrop-blur-md transition-all">
