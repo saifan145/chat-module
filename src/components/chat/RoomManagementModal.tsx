@@ -139,25 +139,25 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-white border border-gray-200 rounded-3xl shadow-2xl p-6 text-slate-800">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 text-slate-800 dark:text-slate-100 transition-colors">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
               <Users className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">
                 {room.type === "GROUP" ? "Group Settings & Members" : "Chat Details"}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 {room.members.length} {room.members.length === 1 ? "participant" : "participants"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-slate-700 transition-colors"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -168,14 +168,14 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
           <div
             className={`my-3 p-2.5 rounded-xl text-xs flex items-center gap-2 ${
               statusMessage.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                : "bg-rose-50 text-rose-800 border border-rose-200"
+                ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
+                : "bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800"
             }`}
           >
             {statusMessage.type === "success" ? (
-              <Check className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+              <Check className="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" />
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600 dark:text-rose-400" />
             )}
             <span>{statusMessage.text}</span>
           </div>
@@ -183,13 +183,13 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
 
         {/* Tab selection */}
         {room.type === "GROUP" && (
-          <div className="flex items-center gap-1.5 p-1 bg-gray-100/80 rounded-2xl border border-gray-200/60 my-4">
+          <div className="flex items-center gap-1.5 p-1 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-700 my-4">
             <button
               onClick={() => setActiveTab("details")}
               className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 activeTab === "details"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-gray-500 hover:text-slate-800"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-gray-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               Overview & Name
@@ -198,8 +198,8 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
               onClick={() => setActiveTab("members")}
               className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 activeTab === "members"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-gray-500 hover:text-slate-800"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-gray-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               Members ({room.members.length})
@@ -208,8 +208,8 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
               onClick={() => setActiveTab("add")}
               className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 activeTab === "add"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-gray-500 hover:text-slate-800"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-gray-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               + Add People
@@ -223,7 +223,7 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
             {room.type === "GROUP" ? (
               <form onSubmit={handleUpdateName} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Group Channel Name
                   </label>
                   <div className="flex gap-2">
@@ -232,18 +232,18 @@ export const RoomManagementModal: React.FC<RoomManagementModalProps> = ({
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       placeholder="e.g. # general-team"
-                      className="flex-1 px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white"
+                      className="flex-1 px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-indigo-400"
                     />
                     <button
                       type="submit"
                       disabled={updateRoomNameMutation.isPending || !nameInput.trim()}
-                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+                      className="px-4 py-2 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                       Save
                     </button>
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-1">
+                  <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
                     Renaming sends a live announcement feed message to all teammates in the group.
                   </p>
                 </div>

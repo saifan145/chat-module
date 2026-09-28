@@ -68,16 +68,16 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
   };
 
   return (
-    <aside className="w-80 md:w-96 border-l border-gray-200 bg-white flex flex-col h-full z-20 select-none animate-in slide-in-from-right duration-200 shadow-lg">
+    <aside className="w-80 md:w-96 border-l border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col h-full z-20 select-none animate-in slide-in-from-right duration-200 shadow-lg">
       {/* Header */}
-      <div className="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className="px-4 py-3.5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/40">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-indigo-600" />
-          <h3 className="text-sm font-bold text-slate-900">Thread</h3>
+          <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Thread</h3>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-lg hover:bg-gray-200/70 text-gray-400 hover:text-slate-800 transition-colors"
+          className="p-1 rounded-lg hover:bg-gray-200/70 dark:hover:bg-slate-800 text-gray-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -86,7 +86,7 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
       {/* Thread Stream */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Parent Message Card */}
-        <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/80">
+        <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-200/80 dark:border-slate-700/80">
           <div className="flex items-center gap-2.5 mb-1.5">
             {parentMessage.sender?.avatarUrl ? (
               <img
@@ -95,15 +95,15 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
                 className="w-7 h-7 rounded-full object-cover"
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs">
                 {parentMessage.sender?.displayName?.charAt(0) || "U"}
               </div>
             )}
             <div>
-              <span className="text-xs font-bold text-slate-900">
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                 {parentMessage.sender?.displayName || "Member"}
               </span>
-              <span className="text-[10px] text-gray-400 block">
+              <span className="text-[10px] text-gray-400 dark:text-slate-400 block">
                 {new Date(parentMessage.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -114,20 +114,20 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
           {parentMessage.content && (
             <FormattedText
               content={parentMessage.content}
-              className="text-xs text-slate-800 font-normal leading-relaxed"
+              className="text-xs text-slate-800 dark:text-slate-200 font-normal leading-relaxed"
             />
           )}
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-2 text-[11px] text-gray-400 font-semibold uppercase tracking-wider px-1">
+        <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider px-1">
           <span>{allReplies.length} Replies</span>
-          <div className="h-px bg-gray-200 flex-1" />
+          <div className="h-px bg-gray-200 dark:bg-slate-800 flex-1" />
         </div>
 
         {/* Replies List */}
         {allReplies.length === 0 ? (
-          <div className="py-8 text-center text-xs text-gray-400">
+          <div className="py-8 text-center text-xs text-gray-400 dark:text-slate-500">
             No replies in this thread yet. Start the conversation!
           </div>
         ) : (
@@ -149,7 +149,7 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
                         className="w-6 h-6 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px]">
+                      <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-[10px]">
                         {reply.sender?.displayName?.charAt(0) || "U"}
                       </div>
                     )}
@@ -158,13 +158,13 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
                 <div
                   className={`max-w-[80%] p-2.5 rounded-2xl ${
                     isSelfReply
-                      ? "bg-[#18191d] text-white rounded-tr-xs"
-                      : "bg-[#f1f3f5] text-slate-900 border border-gray-200/70 rounded-tl-xs"
+                      ? "bg-[#18191d] dark:bg-indigo-600 text-white rounded-tr-xs"
+                      : "bg-[#f1f3f5] dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-gray-200/70 dark:border-slate-700 rounded-tl-xs"
                   }`}
                 >
                   {!isSelfReply && (
                     <div className="flex items-center gap-1.5 mb-1">
-                      <span className="font-bold text-indigo-600 text-[11.5px]">
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400 text-[11.5px]">
                         {reply.sender?.displayName || "Member"}
                       </span>
                     </div>
@@ -174,14 +174,14 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
                       <FormattedText
                         content={reply.content}
                         className={`text-[12px] leading-relaxed ${
-                          isSelfReply ? "text-white" : "text-slate-800"
+                          isSelfReply ? "text-white" : "text-slate-800 dark:text-slate-200"
                         }`}
                       />
                     </div>
                   )}
                   <div
                     className={`text-[10px] mt-1 text-right select-none ${
-                      isSelfReply ? "text-gray-400" : "text-gray-400"
+                      isSelfReply ? "text-gray-300 dark:text-indigo-200" : "text-gray-400 dark:text-slate-400"
                     }`}
                   >
                     {new Date(reply.createdAt).toLocaleTimeString([], {
@@ -197,8 +197,8 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
       </div>
 
       {/* Thread Composer */}
-      <div className="p-3 border-t border-gray-100 bg-gray-50/40">
-        <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 p-2 focus-within:border-slate-400 shadow-2xs">
+      <div className="p-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/40 dark:bg-slate-900/60">
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-2 focus-within:border-slate-400 dark:focus-within:border-slate-500 shadow-2xs">
           <input
             type="text"
             value={replyText}
@@ -210,12 +210,12 @@ export const ThreadDrawer: React.FC<ThreadDrawerProps> = ({
               }
             }}
             placeholder="Reply in thread..."
-            className="w-full text-xs text-slate-900 bg-transparent focus:outline-none placeholder:text-gray-400"
+            className="w-full text-xs text-slate-900 dark:text-slate-100 bg-transparent focus:outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500"
           />
           <button
             onClick={handleSend}
             disabled={!replyText.trim() || isSending}
-            className="p-1 rounded-lg text-slate-900 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-lg text-slate-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <Send className="w-3.5 h-3.5 fill-current stroke-none" />
           </button>

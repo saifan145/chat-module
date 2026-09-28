@@ -8,11 +8,11 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingUsers })
   if (typingUsers.length === 0) return null;
 
   return (
-    <div className="px-6 py-1.5 flex items-center gap-2 text-xs text-slate-500 font-normal">
+    <div className="px-6 py-1.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-normal">
       <div className="flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.3s]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" />
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce [animation-delay:-0.3s]" />
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce [animation-delay:-0.15s]" />
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" />
       </div>
       <span>
         {typingUsers.length === 1

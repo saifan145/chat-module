@@ -37,7 +37,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   const isSidebarVisible = activeSection === "home" || activeSection === "dms";
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-white flex flex-col font-sans antialiased text-slate-800">
+    <div className="h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 flex flex-col font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors">
       {/* Workspace Top Bar with search and actions */}
       <WorkspaceTopBar
         onOpenSearch={onOpenSearch}
@@ -64,7 +64,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
         {/* Second Column: Sidebar Content (Channels when 'home', DMs when 'dms') */}
         {isSidebarVisible && sidebar && (
           <aside
-            className={`w-full md:w-80 flex-shrink-0 bg-[#f8f9fb] border-r border-gray-200/80 flex flex-col ${
+            className={`w-full md:w-80 flex-shrink-0 bg-[#f8f9fb] dark:bg-slate-900 border-r border-gray-200/80 dark:border-slate-800 flex flex-col transition-colors ${
               isRoomSelected ? "hidden md:flex" : "flex"
             }`}
           >
@@ -74,7 +74,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
 
         {/* Third Column / Main Viewport (Always preserves conversation state) */}
         <main
-          className={`flex-1 flex flex-col relative bg-white overflow-hidden ${
+          className={`flex-1 flex flex-col relative bg-white dark:bg-slate-900 overflow-hidden transition-colors ${
             !isRoomSelected && isSidebarVisible ? "hidden md:flex" : "flex"
           }`}
         >

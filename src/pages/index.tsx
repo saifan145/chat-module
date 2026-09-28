@@ -261,14 +261,14 @@ export default function Home() {
             }}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-500 bg-white">
-            <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center text-slate-600 mb-3 shadow-sm">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 transition-colors">
+            <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 mb-3 shadow-sm">
               <MessageSquareDashed className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-semibold text-slate-800 mb-1">
+            <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
               Select a conversation
             </h3>
-            <p className="text-xs text-gray-500 max-w-sm">
+            <p className="text-xs text-gray-500 dark:text-slate-400 max-w-sm">
               Choose an existing chat room from the sidebar or start a new direct or group conversation.
             </p>
           </div>

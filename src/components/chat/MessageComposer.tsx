@@ -338,12 +338,12 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   };
 
   return (
-    <div className="p-4 md:px-6 md:pb-5 bg-white">
+    <div className="p-4 md:px-6 md:pb-5 bg-white dark:bg-slate-900 transition-colors">
       {/* Uploading progress indicator */}
       {isUploading && (
-        <div className="mb-2 px-3 py-2 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between text-xs text-indigo-700 animate-pulse">
+        <div className="mb-2 px-3 py-2 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800/60 flex items-center justify-between text-xs text-indigo-700 dark:text-indigo-300 animate-pulse">
           <div className="flex items-center gap-2">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600 dark:text-indigo-400" />
             <span className="font-medium">Uploading attachment to secure cloud...</span>
           </div>
           <span className="font-bold">{uploadProgress > 0 ? `${uploadProgress}%` : "In progress"}</span>
@@ -352,13 +352,13 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
       {/* File Size Error Banner */}
       {fileError && (
-        <div className="mb-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200/80 flex items-start justify-between gap-2.5 shadow-2xs animate-in fade-in slide-in-from-bottom-1 duration-200">
+        <div className="mb-2.5 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200/80 dark:border-rose-900 flex items-start justify-between gap-2.5 shadow-2xs animate-in fade-in slide-in-from-bottom-1 duration-200">
           <div className="flex items-start gap-2 min-w-0">
             <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-rose-800 leading-snug">
+            <div className="text-xs text-rose-800 dark:text-rose-200 leading-snug">
               <span className="font-bold">Cannot attach file: </span>
               {fileError}
-              <span className="block text-[11px] text-rose-600/90 font-medium mt-0.5">
+              <span className="block text-[11px] text-rose-600/90 dark:text-rose-400 font-medium mt-0.5">
                 Maximum allowed file size is 20MB. Please select a smaller file or compress it.
               </span>
             </div>
@@ -366,7 +366,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           <button
             type="button"
             onClick={() => setFileError(null)}
-            className="p-1 text-rose-400 hover:text-rose-700 hover:bg-rose-100 rounded-lg transition-colors flex-shrink-0"
+            className="p-1 text-rose-400 hover:text-rose-700 dark:hover:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg transition-colors flex-shrink-0"
             title="Dismiss"
           >
             <X className="w-3.5 h-3.5" />
@@ -390,25 +390,25 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
         onDrop={handleDrop}
         className={`relative rounded-2xl border p-3 transition-all ${
           isDragging
-            ? "border-indigo-400 bg-indigo-50/40 ring-2 ring-indigo-200"
-            : "bg-[#f5f6f8] border-gray-200/90 focus-within:border-gray-300 focus-within:bg-[#f2f4f7]"
+            ? "border-indigo-400 bg-indigo-50/40 dark:bg-indigo-950/40 ring-2 ring-indigo-200 dark:ring-indigo-800"
+            : "bg-[#f5f6f8] dark:bg-slate-800/80 border-gray-200/90 dark:border-slate-700/80 focus-within:border-gray-300 dark:focus-within:border-slate-600 focus-within:bg-[#f2f4f7] dark:focus-within:bg-slate-800"
         }`}
       >
         {/* Reply Quote Banner */}
         {replyingTo && (
-          <div className="mb-2 p-2 rounded-xl bg-white border border-gray-200/80 flex items-center justify-between shadow-xs">
+          <div className="mb-2 p-2 rounded-xl bg-white dark:bg-slate-700/70 border border-gray-200/80 dark:border-slate-600 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <Reply className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-              <span className="text-xs font-semibold text-slate-800">
+              <Reply className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Replying to {replyingTo.sender?.displayName || "message"}:
               </span>
-              <span className="text-xs text-slate-500 truncate flex-1">
+              <span className="text-xs text-slate-500 dark:text-slate-400 truncate flex-1">
                 {replyingTo.content || "Attachment"}
               </span>
             </div>
             <button
               onClick={onCancelReply}
-              className="p-1 text-gray-400 hover:text-gray-700 rounded-lg"
+              className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 rounded-lg"
               title="Cancel reply"
             >
               <X className="w-3.5 h-3.5" />
@@ -422,19 +422,19 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             {attachedFiles.map((file, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white border border-gray-200 text-xs text-slate-700 shadow-xs hover:border-gray-300 transition-all"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-700/70 border border-gray-200 dark:border-slate-600 text-xs text-slate-700 dark:text-slate-200 shadow-xs hover:border-gray-300 dark:hover:border-slate-500 transition-all"
               >
-                <Paperclip className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                <span className="truncate max-w-[150px] font-medium text-slate-800" title={file.name}>
+                <Paperclip className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                <span className="truncate max-w-[150px] font-medium text-slate-800 dark:text-slate-200" title={file.name}>
                   {file.name}
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 bg-slate-100 dark:bg-slate-600 px-1.5 py-0.5 rounded">
                   {formatFileSize(file.size)}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeFile(idx)}
-                  className="hover:text-rose-500 hover:bg-rose-50 rounded p-0.5 text-gray-400 transition-colors"
+                  className="hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded p-0.5 text-gray-400 transition-colors"
                   title="Remove attachment"
                 >
                   <X className="w-3 h-3" />
@@ -455,18 +455,18 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
         {/* Floating @mention autocomplete suggestion menu */}
         {showMentionMenu && filteredUsers.length > 0 && (
-          <div className="absolute bottom-full left-4 mb-2 w-72 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden z-40 animate-in fade-in slide-in-from-bottom-2 duration-150">
-            <div className="px-3 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+          <div className="absolute bottom-full left-4 mb-2 w-72 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl overflow-hidden z-40 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="px-3 py-2 bg-gray-50/80 dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
               <span>Mention Teammate</span>
-              <span className="text-[10px] text-gray-400 font-normal">Press Enter to select</span>
+              <span className="text-[10px] text-gray-400 dark:text-slate-500 font-normal">Press Enter to select</span>
             </div>
-            <div className="max-h-48 overflow-y-auto divide-y divide-gray-50">
+            <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-700/60">
               {filteredUsers.slice(0, 6).map((u) => (
                 <button
                   key={u.id}
                   type="button"
                   onClick={() => handleSelectMention(u)}
-                  className="w-full px-3 py-2 flex items-center gap-2.5 text-left hover:bg-indigo-50/80 transition-colors group"
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-left hover:bg-indigo-50/80 dark:hover:bg-indigo-950/50 transition-colors group"
                 >
                   {u.avatarUrl ? (
                     <img
@@ -475,15 +475,15 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
                       className="w-6 h-6 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                       {u.displayName.charAt(0)}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 truncate">
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate">
                       {u.displayName}
                     </div>
-                    <div className="text-[11px] text-gray-400 truncate">
+                    <div className="text-[11px] text-gray-400 dark:text-slate-400 truncate">
                       @{u.username}
                     </div>
                   </div>
@@ -502,26 +502,26 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           onKeyDown={handleKeyDown}
           placeholder="Write a message... (type @ to mention a teammate)"
           disabled={isSending || isUploading}
-          className="w-full bg-transparent text-slate-900 placeholder:text-gray-400 text-[13.5px] leading-relaxed focus:outline-none resize-none px-1"
+          className="w-full bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 text-[13.5px] leading-relaxed focus:outline-none resize-none px-1"
         />
 
         {/* Bottom Toolbar Row */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-200/50 mt-1">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-slate-700/60 mt-1">
           {/* Functional action tools */}
-          <div className="flex items-center gap-1 text-gray-400">
+          <div className="flex items-center gap-1 text-gray-400 dark:text-slate-400">
             {/* Emoji picker */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+                className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
                 title="Add Emoji"
               >
                 <Smile className="w-4 h-4 stroke-[1.8]" />
               </button>
 
               {showEmojiPicker && (
-                <div className="absolute bottom-9 left-0 bg-white border border-gray-200 rounded-xl shadow-lg p-2 flex gap-1 z-30">
+                <div className="absolute bottom-9 left-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg p-2 flex gap-1 z-30">
                   {quickEmojis.map((emoji) => (
                     <button
                       key={emoji}
@@ -540,7 +540,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             <button
               type="button"
               onClick={addMention}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Mention user"
             >
               <AtSign className="w-4 h-4 stroke-[1.8]" />
@@ -551,7 +551,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading || isSending}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Attach files or media (Max 20MB each)"
             >
               <Paperclip className="w-4 h-4 stroke-[1.8]" />
@@ -562,19 +562,19 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
               type="button"
               onClick={() => setIsVoiceRecording(true)}
               disabled={isUploading || isSending}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors text-slate-500"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors text-slate-500 dark:text-slate-400"
               title="Record Voice Note"
             >
               <Mic className="w-4 h-4 stroke-[1.8]" />
             </button>
 
-            <div className="h-3.5 w-px bg-gray-300/70 mx-0.5" />
+            <div className="h-3.5 w-px bg-gray-300/70 dark:bg-slate-700 mx-0.5" />
 
             {/* Rich Text Format Tools */}
             <button
               type="button"
               onClick={() => applyFormat("**")}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Bold (**text**)"
             >
               <Bold className="w-3.5 h-3.5" />
@@ -583,7 +583,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             <button
               type="button"
               onClick={() => applyFormat("*")}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Italic (*text*)"
             >
               <Italic className="w-3.5 h-3.5" />
@@ -592,7 +592,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             <button
               type="button"
               onClick={() => applyFormat("`")}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Inline Code (`code`)"
             >
               <Code className="w-3.5 h-3.5" />
@@ -601,7 +601,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             <button
               type="button"
               onClick={() => applyFormat("> ", "")}
-              className="p-1.5 hover:text-slate-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+              className="p-1.5 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors"
               title="Quote (> text)"
             >
               <Quote className="w-3.5 h-3.5" />
@@ -615,13 +615,13 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             disabled={!canSend}
             className={`p-1.5 rounded-xl transition-all ${
               canSend
-                ? "text-slate-900 hover:bg-gray-200/80 active:scale-95"
-                : "text-gray-300 cursor-not-allowed"
+                ? "text-slate-900 dark:text-slate-100 hover:bg-gray-200/80 dark:hover:bg-slate-700/80 active:scale-95"
+                : "text-gray-300 dark:text-slate-600 cursor-not-allowed"
             }`}
             title="Send message"
           >
             {isSending || isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+              <Loader2 className="w-4 h-4 animate-spin text-slate-600 dark:text-slate-400" />
             ) : (
               <Send className="w-4 h-4 fill-current stroke-none" />
             )}

@@ -49,13 +49,13 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-3xl shadow-2xl p-6 text-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 text-slate-800 dark:text-slate-100">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-slate-900">New Conversation</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">New Conversation</h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-slate-700 transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -63,14 +63,14 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Type selector */}
-          <div className="grid grid-cols-2 gap-1.5 p-1 bg-gray-100/80 rounded-2xl border border-gray-200/60">
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl border border-gray-200/60 dark:border-slate-700/60">
             <button
               type="button"
               onClick={() => setType("DIRECT")}
               className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
                 type === "DIRECT"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
               <MessageSquare className="w-4 h-4" /> Direct Chat
@@ -80,8 +80,8 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
               onClick={() => setType("GROUP")}
               className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
                 type === "GROUP"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
               <Users className="w-4 h-4" /> Group Room
@@ -90,7 +90,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
           {type === "GROUP" && (
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Channel Name
               </label>
               <input
@@ -99,13 +99,13 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. # sprint-retro"
-                className="w-full px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               {type === "DIRECT" ? "User ID / Username" : "Participant IDs (comma-separated)"}
             </label>
             <input
@@ -114,7 +114,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
               value={userIdInput}
               onChange={(e) => setUserIdInput(e.target.value)}
               placeholder={type === "DIRECT" ? "e.g. usr_alex" : "e.g. usr_alex, usr_sarah"}
-              className="w-full px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             />
           </div>
 
@@ -122,14 +122,14 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#18191d] hover:bg-slate-800 text-white shadow-sm disabled:opacity-50 transition-all"
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#18191d] dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white shadow-sm disabled:opacity-50 transition-all"
             >
               {isLoading ? "Creating..." : "Start Conversation"}
             </button>

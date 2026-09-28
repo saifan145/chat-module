@@ -41,8 +41,8 @@ export const RoomItem: React.FC<RoomItemProps> = ({
       onClick={onClick}
       className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between gap-3 transition-all duration-150 ${
         isSelected
-          ? "bg-gray-200/80 text-slate-900 font-medium shadow-xs"
-          : "text-slate-700 hover:bg-gray-100/80 hover:text-slate-900"
+          ? "bg-gray-200/80 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium shadow-xs"
+          : "text-slate-700 dark:text-slate-300 hover:bg-gray-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100"
       }`}
     >
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -52,16 +52,16 @@ export const RoomItem: React.FC<RoomItemProps> = ({
               <img
                 src={avatarUrl}
                 alt={displayName}
-                className="w-7 h-7 rounded-full object-cover bg-gray-200"
+                className="w-7 h-7 rounded-full object-cover bg-gray-200 dark:bg-slate-700"
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-medium">
+              <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 text-xs font-medium">
                 {displayName.charAt(0)}
               </div>
             )}
             {/* Green Online status dot */}
             {isOnline && (
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#f8f9fb]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#f8f9fb] dark:border-slate-900" />
             )}
           </div>
         ) : (

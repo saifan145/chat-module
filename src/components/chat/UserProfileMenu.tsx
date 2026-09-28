@@ -155,35 +155,35 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="absolute bottom-16 left-3 z-50 w-80 bg-white rounded-2xl border border-gray-200/90 shadow-2xl py-2 text-slate-800 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none max-h-[85vh] overflow-y-auto"
+      className="absolute bottom-16 left-3 z-50 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-2xl py-2 text-slate-800 dark:text-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none max-h-[85vh] overflow-y-auto transition-colors"
     >
       {/* User Header */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-slate-800">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="relative flex-shrink-0">
             {currentUser.avatarUrl ? (
               <img
                 src={currentUser.avatarUrl}
                 alt={currentUser.displayName}
-                className="w-10 h-10 rounded-xl object-cover ring-1 ring-gray-200"
+                className="w-10 h-10 rounded-xl object-cover ring-1 ring-gray-200 dark:ring-slate-700"
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
                 {currentUser.displayName.charAt(0)}
               </div>
             )}
             {/* Presence indicator */}
             <span
-              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full ring-2 ring-white ${
+              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-slate-900 ${
                 isAway ? "bg-amber-400" : "bg-emerald-500"
               }`}
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-slate-900 text-sm leading-tight truncate">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-tight truncate">
               {currentUser.displayName}
             </h4>
-            <p className="text-xs text-gray-500 truncate">@{currentUser.username}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 truncate">@{currentUser.username}</p>
           </div>
         </div>
 
@@ -195,7 +195,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
             setEditUsername(currentUser.username);
             setProfileError(null);
           }}
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-slate-700 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex-shrink-0"
           title="Edit Display Name & @handle"
         >
           <Edit2 className="w-3.5 h-3.5" />
@@ -204,29 +204,29 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
 
       {/* Edit Profile Form */}
       {isEditingProfile && (
-        <form onSubmit={handleSaveProfile} className="p-3 bg-gray-50/90 border-b border-gray-100 space-y-2.5">
+        <form onSubmit={handleSaveProfile} className="p-3 bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-800 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
               Edit Your Profile
             </span>
             <button
               type="button"
               onClick={() => setIsEditingProfile(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {profileError && (
-            <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[11px] flex items-center gap-1.5">
+            <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-[11px] flex items-center gap-1.5">
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{profileError}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+            <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">
               Full Display Name
             </label>
             <input
@@ -234,23 +234,23 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               required
               value={editDisplayName}
               onChange={(e) => setEditDisplayName(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-white border border-gray-200 focus:outline-none focus:border-slate-400"
+              className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600 focus:outline-none focus:border-slate-400"
               placeholder="e.g. Saifan Ahmed"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+            <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">
               Username Handle (@)
             </label>
             <div className="relative">
-              <span className="absolute left-2.5 top-1.5 text-xs text-gray-400 font-mono">@</span>
+              <span className="absolute left-2.5 top-1.5 text-xs text-gray-400 dark:text-slate-500 font-mono">@</span>
               <input
                 type="text"
                 required
                 value={editUsername}
                 onChange={(e) => setEditUsername(e.target.value.replace(/^@/, ""))}
-                className="w-full pl-6 pr-2.5 py-1.5 rounded-lg text-xs bg-white border border-gray-200 focus:outline-none focus:border-slate-400 font-mono"
+                className="w-full pl-6 pr-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600 focus:outline-none focus:border-slate-400 font-mono"
                 placeholder="saifan"
               />
             </div>
@@ -260,14 +260,14 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
             <button
               type="button"
               onClick={() => setIsEditingProfile(false)}
-              className="px-2.5 py-1 text-xs text-gray-500 hover:text-slate-800"
+              className="px-2.5 py-1 text-xs text-gray-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={updateProfileMutation.isPending}
-              className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+              className="px-3 py-1 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors"
             >
               {updateProfileMutation.isPending ? "Saving..." : "Save"}
             </button>
@@ -276,22 +276,22 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
       )}
 
       {/* Switch Demo Identity Section */}
-      <div className="px-3 py-2 bg-indigo-50/60 border-b border-indigo-100/70">
+      <div className="px-3 py-2 bg-indigo-50/60 dark:bg-indigo-950/40 border-b border-indigo-100/70 dark:border-indigo-900/60">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-indigo-600" />
+          <span className="text-[11px] font-bold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             Switch Active User
           </span>
           <button
             onClick={() => setShowUserSwitcher((prev) => !prev)}
-            className="text-[11px] text-indigo-600 font-semibold hover:underline"
+            className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
           >
             {showUserSwitcher ? "Hide" : "Show All"}
           </button>
         </div>
 
         {showUserSwitcher && (
-          <div className="space-y-1 mt-2 pt-1 border-t border-indigo-100/80">
+          <div className="space-y-1 mt-2 pt-1 border-t border-indigo-100/80 dark:border-indigo-900/60">
             {DEMO_USERS.map((user) => {
               const isActive = user.id === currentUser.id;
               return (
@@ -304,7 +304,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
                   className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-left text-xs transition-colors ${
                     isActive
                       ? "bg-indigo-600 text-white font-semibold shadow-sm"
-                      : "bg-white hover:bg-indigo-100 text-slate-700"
+                      : "bg-white dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -317,7 +317,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
                       <div className="truncate text-[11px] leading-tight font-medium">
                         {user.name}
                       </div>
-                      <div className={`truncate text-[9px] ${isActive ? "text-indigo-100" : "text-gray-400"}`}>
+                      <div className={`truncate text-[9px] ${isActive ? "text-indigo-100" : "text-gray-400 dark:text-slate-400"}`}>
                         {user.role}
                       </div>
                     </div>
@@ -331,14 +331,14 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
       </div>
 
       {/* Status Section */}
-      <div className="px-3 py-2 border-b border-gray-100">
+      <div className="px-3 py-2 border-b border-gray-100 dark:border-slate-800">
         {!showStatusInput ? (
           <button
             onClick={() => setShowStatusInput(true)}
-            className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-xs text-gray-500 transition-colors"
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800/60 text-xs text-gray-500 dark:text-slate-400 transition-colors"
           >
             <div className="flex items-center gap-2 truncate">
-              <Smile className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              <Smile className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 flex-shrink-0" />
               <span className="truncate">
                 {statusText || "Update your status..."}
               </span>
@@ -350,7 +350,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
                   setStatusText("");
                   onUpdateStatus?.("");
                 }}
-                className="text-gray-400 hover:text-gray-600 p-0.5 rounded"
+                className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 p-0.5 rounded"
               >
                 <X className="w-3.5 h-3.5" />
               </span>
@@ -364,7 +364,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
                 value={statusText}
                 onChange={(e) => setStatusText(e.target.value)}
                 placeholder="What's your focus today?"
-                className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-gray-50 border border-gray-200 focus:outline-none focus:border-slate-400 focus:bg-white"
+                className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-slate-400"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleApplyStatus(statusText);
@@ -373,7 +373,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               />
               <button
                 onClick={() => handleApplyStatus(statusText)}
-                className="px-2 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors"
+                className="px-2 py-1.5 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 dark:hover:bg-indigo-700 transition-colors"
               >
                 Save
               </button>
@@ -384,7 +384,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
                 <button
                   key={p.label}
                   onClick={() => handleApplyStatus(`${p.icon} ${p.label}`)}
-                  className="px-2 py-0.5 rounded-md bg-gray-100 hover:bg-gray-200 text-[11px] text-gray-600 flex items-center gap-1 transition-colors"
+                  className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-[11px] text-gray-600 dark:text-slate-300 flex items-center gap-1 transition-colors"
                 >
                   <span>{p.icon}</span>
                   <span>{p.label}</span>
@@ -396,10 +396,10 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
       </div>
 
       {/* Main Options */}
-      <div className="px-1.5 py-1.5 space-y-0.5 text-xs text-slate-700">
+      <div className="px-1.5 py-1.5 space-y-0.5 text-xs text-slate-700 dark:text-slate-300">
         <button
           onClick={handleToggleAway}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
         >
           <span>Set yourself as {isAway ? "active" : "away"}</span>
           <span
@@ -411,19 +411,19 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
 
         <button
           onClick={() => setNotificationPaused(!notificationPaused)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <BellOff className="w-3.5 h-3.5 text-gray-400" />
+            <BellOff className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
             <span>Pause notifications</span>
           </div>
-          <span className="text-[11px] text-gray-400 font-medium">
+          <span className="text-[11px] text-gray-400 dark:text-slate-400 font-medium">
             {notificationPaused ? "Paused" : "Off"}
           </span>
         </button>
       </div>
 
-      <div className="my-1 border-t border-gray-100" />
+      <div className="my-1 border-t border-gray-100 dark:border-slate-800" />
 
       {/* Sign Out */}
       <div className="px-1.5 pt-1">
@@ -432,7 +432,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
             onClose();
             onSignOut();
           }}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-medium text-xs transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-medium text-xs transition-colors"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Switch / Sign Out</span>

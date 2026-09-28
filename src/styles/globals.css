@@ -88,16 +88,12 @@ body {
 }
 
 /* Chat window in dark mode */
-.dark .bg-white {
-  background-color: #0f172a !important;
-}
-
 .dark .bg-\[\#f8f9fb\] {
-  background-color: #111827 !important;
+  background-color: #111827;
 }
 
 .dark .bg-\[\#f8f9fa\] {
-  background-color: #0b0f19 !important;
+  background-color: #0b0f19;
 }
 
 .dark .border-gray-100,
@@ -106,49 +102,20 @@ body {
 .dark .border-gray-200\/70,
 .dark .border-slate-200\/80,
 .dark .border-slate-200\/60 {
-  border-color: #1e293b !important;
-}
-
-.dark .text-slate-900,
-.dark .text-slate-800,
-.dark .text-slate-700 {
-  color: #f1f5f9 !important;
-}
-
-.dark .text-slate-500,
-.dark .text-slate-600,
-.dark .text-gray-500,
-.dark .text-gray-600 {
-  color: #94a3b8 !important;
-}
-
-.dark .text-slate-400,
-.dark .text-gray-400 {
-  color: #64748b !important;
+  border-color: #1e293b;
 }
 
 /* Incoming message bubbles in dark mode */
 .dark .bg-\[\#f1f3f5\] {
-  background-color: #1e293b !important;
-  color: #f1f5f9 !important;
-  border-color: #334155 !important;
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
 }
 
 /* Outgoing message bubbles in dark mode */
 .dark .bg-\[\#18191d\] {
-  background-color: #4f46e5 !important;
-  color: #ffffff !important;
-}
-
-/* Composer in dark mode */
-.dark textarea {
-  background-color: #1e293b !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
-}
-
-.dark textarea::placeholder {
-  color: #64748b !important;
+  background-color: #4f46e5;
+  color: #ffffff;
 }
 
 /* Custom modern subtle scrollbars */

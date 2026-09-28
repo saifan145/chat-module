@@ -37,7 +37,7 @@ export const MessageList: React.FC<MessageListProps> = ({
         <div className="text-center my-3">
           <button
             onClick={onLoadMore}
-            className="text-xs text-slate-500 hover:text-slate-800 font-medium px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200/70 transition-colors"
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200/70 dark:hover:bg-slate-700 transition-colors"
           >
             Load older messages
           </button>
@@ -45,7 +45,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       )}
 
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+        <div className="h-full flex items-center justify-center text-gray-400 dark:text-slate-500 text-xs">
           No messages in this conversation yet. Send the first message!
         </div>
       ) : (

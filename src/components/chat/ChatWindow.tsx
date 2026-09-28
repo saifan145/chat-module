@@ -376,11 +376,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   );
 
   return (
-    <div className="flex-1 flex h-full bg-white overflow-hidden">
+    <div className="flex-1 flex h-full bg-white dark:bg-slate-900 overflow-hidden transition-colors">
       {/* Main Channel / Conversation Stream */}
-      <div className="flex-1 flex flex-col h-full bg-white min-w-0">
+      <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 min-w-0">
         {/* Top Header */}
-        <div className="px-6 pt-5 pb-2 border-b border-gray-100 flex flex-col gap-3">
+        <div className="px-6 pt-5 pb-2 border-b border-gray-100 dark:border-slate-800 flex flex-col gap-3">
           {/* Contact Info & Actions */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -389,7 +389,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 <button
                   type="button"
                   onClick={onBack}
-                  className="md:hidden p-1.5 -ml-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-gray-100 transition-colors"
+                  className="md:hidden p-1.5 -ml-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                   title="Back to channels list"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -401,35 +401,35 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   <img
                     src={avatarUrl}
                     alt={title}
-                    className="w-9 h-9 rounded-full object-cover bg-gray-100 ring-1 ring-gray-200 flex-shrink-0"
+                    className="w-9 h-9 rounded-full object-cover bg-gray-100 dark:bg-slate-800 ring-1 ring-gray-200 dark:ring-slate-700 flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold text-sm flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-semibold text-sm flex-shrink-0">
                     {title.charAt(0)}
                   </div>
                 )
               ) : (
-                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                   <Hash className="w-4 h-4" />
                 </div>
               )}
 
               <div className="min-w-0">
-                <h3 className="font-semibold text-slate-900 text-base leading-snug truncate">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-base leading-snug truncate">
                   {title}
                 </h3>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
               {/* Start Huddle Button */}
               <button
                 onClick={() => setIsHuddleActive((prev) => !prev)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   isHuddleActive
                     ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-gray-100 hover:bg-gray-200 text-slate-700"
+                    : "bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
                 }`}
                 title="Start or join a voice huddle"
               >
@@ -439,7 +439,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
               <button
                 onClick={() => setIsHuddleActive(true)}
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-slate-900 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                 title="Voice Call"
               >
                 <Phone className="w-4 h-4 stroke-[1.8]" />
@@ -448,7 +448,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               {/* Group Settings / Member Management Modal Trigger */}
               <button
                 onClick={() => setIsManageModalOpen(true)}
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-slate-900 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                 title={room.type === "GROUP" ? "Manage group & members" : "Chat options"}
               >
                 <MoreHorizontal className="w-4 h-4 stroke-[1.8]" />
@@ -462,13 +462,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               onClick={() => setActiveTab("messages")}
               className={`pb-2 transition-all relative ${
                 activeTab === "messages"
-                  ? "text-slate-900 font-semibold"
-                  : "text-gray-400 hover:text-slate-600 font-normal"
+                  ? "text-slate-900 dark:text-slate-100 font-semibold"
+                  : "text-gray-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-normal"
               }`}
             >
               Messages
               {activeTab === "messages" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 dark:bg-indigo-400 rounded-full" />
               )}
             </button>
 
@@ -476,13 +476,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               onClick={() => setActiveTab("files")}
               className={`pb-2 transition-all relative ${
                 activeTab === "files"
-                  ? "text-slate-900 font-semibold"
-                  : "text-gray-400 hover:text-slate-600 font-normal"
+                  ? "text-slate-900 dark:text-slate-100 font-semibold"
+                  : "text-gray-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-normal"
               }`}
             >
               Files {allAttachments.length > 0 && `(${allAttachments.length})`}
               {activeTab === "files" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 dark:bg-indigo-400 rounded-full" />
               )}
             </button>
           </div>
@@ -526,12 +526,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
 
         {activeTab === "files" && (
-          <div className="flex-1 overflow-y-auto p-6">
-            <h4 className="text-sm font-semibold text-slate-900 mb-3">
+          <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900 transition-colors">
+            <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
               Shared Files & Attachments
             </h4>
             {allAttachments.length === 0 ? (
-              <div className="text-center py-12 text-xs text-gray-400">
+              <div className="text-center py-12 text-xs text-gray-400 dark:text-slate-500">
                 No files or media shared in this conversation yet.
               </div>
             ) : (
@@ -542,14 +542,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     href={att.url || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-xs transition-all flex items-center gap-3"
+                    className="p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-xs transition-all flex items-center gap-3"
                   >
-                    <FileText className="w-8 h-8 text-indigo-500 flex-shrink-0" />
+                    <FileText className="w-8 h-8 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-slate-800 truncate">
+                      <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
                         {att.fileName}
                       </p>
-                      <p className="text-[10px] text-gray-400">
+                      <p className="text-[10px] text-gray-400 dark:text-slate-400">
                         {(Number(att.size) / 1024).toFixed(1)} KB • {att.senderName}
                       </p>
                     </div>

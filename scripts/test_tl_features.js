@@ -1,6 +1,6 @@
 const http = require("http");
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = process.env.TEST_PORT ? `http://localhost:${process.env.TEST_PORT}` : "http://localhost:3000";
 
 function httpRequest(path, method = "GET", headers = {}, body = null) {
   return new Promise((resolve, reject) => {
